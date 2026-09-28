@@ -4,7 +4,7 @@ import { slide } from '@remotion/transitions/slide';
 import type { ComponentType } from 'react';
 import { AccountScene, ActivateScene, CoverScene, DataScene, HealthScene, PhotoScene } from './activation';
 import { AndroidInstallScene, InstallScene, NotifyScene } from './install';
-import { AlertScene, CollarScene, HookScene, OutroScene, ProfileScene, ScanScene } from './scenes';
+import { AlertScene, CollarScene, HookScene, LostScanScene, OutroScene, ProfileScene, ScanScene } from './scenes';
 
 type Presentation = TransitionPresentation<Record<string, unknown>>;
 
@@ -25,7 +25,8 @@ const scenes: { id: string; frames: number; Scene: ComponentType; enter?: Presen
   { id: 'install', frames: 280, Scene: InstallScene, enter: slideIn },
   { id: 'android', frames: 250, Scene: AndroidInstallScene, enter: slideIn },
   { id: 'notify', frames: 240, Scene: NotifyScene, enter: fadeIn },
-  { id: 'profile', frames: 230, Scene: ProfileScene, enter: slideIn },
+  { id: 'lost-scan', frames: 170, Scene: LostScanScene, enter: slideIn },
+  { id: 'profile', frames: 230, Scene: ProfileScene, enter: fadeIn },
   { id: 'alert', frames: 230, Scene: AlertScene, enter: slideIn },
   { id: 'outro', frames: 150, Scene: OutroScene, enter: fadeIn },
 ];

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import {
   BrandBackground, Caption, clamp, Headline, Icon, LightBackground, Logo, Phone, SCREEN_H, SCREEN_W, SequenceFrom, StatusBar, Tap, useSpring,
@@ -93,6 +93,23 @@ const SCALE = 1.77;
 const FRAME_BOX = { x: 110, y: 400, s: 380 };
 
 export function ScanScene() {
+  return (
+    <CameraScan pillTitle="Abrir perfil PetID">
+      <Caption step={1} title="Escanea la placa" subtitle="La primera vez se abre la activación" />
+    </CameraScan>
+  );
+}
+
+/** Someone who found the pet scans the tag, right before the public profile scene. */
+export function LostScanScene() {
+  return (
+    <CameraScan pillTitle="Abrir perfil de Max">
+      <Caption badge="Si se pierde" title="Alguien escanea su placa" subtitle="Ahora, si alguien escanea el QR de Max, verá su perfil" />
+    </CameraScan>
+  );
+}
+
+function CameraScan({ pillTitle, children }: { pillTitle: string; children: ReactNode }) {
   const frame = useCurrentFrame();
   const focus = useSpring(4, { damping: 20 });
   const blur = interpolate(frame, [4, 32], [12, 0], clamp);
@@ -114,7 +131,7 @@ export function ScanScene() {
   );
   return (
     <LightBackground>
-      <Caption step={1} title="Escanea la placa" subtitle="La primera vez se abre la activación" />
+      {children}
       <Phone top={520}>
         <div style={{ position: 'absolute', inset: 0, background: '#fff' }}>
           <Img src={staticFile('collar-tag.png')} style={{
@@ -142,7 +159,7 @@ export function ScanScene() {
           }}>
             <Icon name="link" size={36} width={2.6} />
             <div>
-              <div style={{ fontSize: 28, fontWeight: 800 }}>Abrir perfil PetID</div>
+              <div style={{ fontSize: 28, fontWeight: 800 }}>{pillTitle}</div>
               <div style={{ fontSize: 20, fontWeight: 600, opacity: 0.7 }}>Placa PET-00001</div>
             </div>
           </div>
@@ -176,7 +193,7 @@ export function ProfileScene() {
   const pulse = (at: number) => interpolate(frame, [at - 2, at + 4, at + 12], [1, 0.95, 1], clamp);
   return (
     <LightBackground>
-      <Caption badge="Si se pierde" title="Escanean su placa" subtitle="Ven su perfil y te contactan al instante" />
+      <Caption badge="Si se pierde" title="Ven su perfil" subtitle="Y te contactan al instante" />
       <Phone top={520} delay={-30}>
         <div style={{ position: 'absolute', left: 0, top: 0, width: SCREEN_W, height: PROFILE_TOP + PROFILE_H, background: 'rgb(232,237,241)', transform: `translateY(${-scroll}px)` }}>
           <Img src={staticFile('profile.png')} style={{ position: 'absolute', left: 0, top: PROFILE_TOP, width: SCREEN_W, height: PROFILE_H }} />
