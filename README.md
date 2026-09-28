@@ -32,7 +32,7 @@ Admin genera PetID genérica (PET-00001 + qr_token aleatorio)
 ## Aviso automático al escanear
 
 1. **Zona aproximada en cada escaneo.** La página pública consulta `/api/geo` (Cloudflare Pages Function en `functions/api/geo.js`), que devuelve la ciudad y región según la conexión del visitante. No se guarda su IP. Es una estimación que puede fallar por varios kilómetros. En desarrollo local no hay `/api/geo` y el escaneo se guarda sin zona.
-2. **GPS automático si la mascota está perdida.** Al abrir el perfil de una mascota marcada como perdida, el navegador pregunta si comparte la ubicación. Si acepta, se envía sola. Si no es una mascota perdida, está el botón "Enviar mi ubicación". El navegador **siempre** pide permiso: ninguna web puede leer el GPS sin él.
+2. **GPS automático si la mascota está perdida.** Al abrir el perfil de una mascota marcada como perdida, el navegador pregunta si comparte la ubicación. Si acepta, se envía sola. Si no es una mascota perdida, está el botón "Enviar mi ubicación". Antes de enviar, la app espera hasta 8 segundos por una señal GPS con menos de 50 m de margen y manda la más precisa que consiguió. El navegador **siempre** pide permiso: ninguna web puede leer el GPS sin él.
 3. **Notificación push al dueño.** Cuando escanean la placa, comparten el GPS o reportan que la encontraron, un trigger llama a la Edge Function `push-owner`, que envía una notificación a los dispositivos del dueño. Después de avisar un escaneo, los siguientes escaneos de esa placa no avisan durante 2 minutos. El dueño las activa desde su dashboard ("Activar avisos"). En iPhone, primero hay que agregar PetID a la pantalla de inicio.
 
 ### Configurar las notificaciones push
