@@ -3,6 +3,9 @@
 -- its URL lives in Vault and the shared secret is reused; until the URL exists the trigger does nothing:
 --   select vault.create_secret('https://<project>.supabase.co/functions/v1/notify-support', 'notify_support_url');
 
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+
 -- ─── Support messages ──────────────────────────────────────────────────────
 
 create table public.support_messages (
