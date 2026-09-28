@@ -31,7 +31,7 @@ webpush.setVapidDetails(
   Deno.env.get('VAPID_PRIVATE_KEY')!,
 );
 
-/** Repeated scans of the same PetID within this window only notify once. */
+/** After a scan notifies the owner, further scans of the same PetID within this window stay silent. */
 const SCAN_COOLDOWN_MS = 2 * 60_000;
 
 const mapsUrl = (lat: number, lng: number) => `https://www.google.com/maps?q=${lat},${lng}`;
@@ -53,8 +53,7 @@ async function buildNotification(table: Table, row: Record<string, any>, pet: Re
       .select('id', { count: 'exact', head: true })
       .eq('pet_id', pet.id)
       .neq('id', row.id)
-      .gte('scanned_at', since)
-      .lte('scanned_at', row.scanned_at);
+      .gte('notified_at', since);
     if (count) return null;
 
     const place = [row.city, row.region].filter(Boolean).join(', ');
@@ -195,6 +194,9 @@ Deno.serve(async (req) => {
   }
 
   const sent = results.filter((r) => r.status === 'fulfilled').length;
+  if (table === 'scans' && sent) {
+    await db.from('scans').update({ notified_at: new Date().toISOString() }).eq('id', record.id);
+  }
   return new Response(JSON.stringify({ sent, removed: gone.length }), {
     headers: { 'Content-Type': 'application/json' },
   });

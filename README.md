@@ -33,7 +33,7 @@ Admin genera PetID genérica (PET-00001 + qr_token aleatorio)
 
 1. **Zona aproximada en cada escaneo.** La página pública consulta `/api/geo` (Cloudflare Pages Function en `functions/api/geo.js`), que devuelve la ciudad y región según la conexión del visitante. No se guarda su IP. Es una estimación que puede fallar por varios kilómetros. En desarrollo local no hay `/api/geo` y el escaneo se guarda sin zona.
 2. **GPS automático si la mascota está perdida.** Al abrir el perfil de una mascota marcada como perdida, el navegador pregunta si comparte la ubicación. Si acepta, se envía sola. Si no es una mascota perdida, está el botón "Enviar mi ubicación". El navegador **siempre** pide permiso: ninguna web puede leer el GPS sin él.
-3. **Notificación push al dueño.** Cuando escanean la placa, comparten el GPS o reportan que la encontraron, un trigger llama a la Edge Function `push-owner`, que envía una notificación a los dispositivos del dueño. Los escaneos repetidos en menos de 2 minutos avisan una sola vez. El dueño las activa desde su dashboard ("Activar avisos"). En iPhone, primero hay que agregar PetID a la pantalla de inicio.
+3. **Notificación push al dueño.** Cuando escanean la placa, comparten el GPS o reportan que la encontraron, un trigger llama a la Edge Function `push-owner`, que envía una notificación a los dispositivos del dueño. Después de avisar un escaneo, los siguientes escaneos de esa placa no avisan durante 2 minutos. El dueño las activa desde su dashboard ("Activar avisos"). En iPhone, primero hay que agregar PetID a la pantalla de inicio.
 
 ### Configurar las notificaciones push
 
@@ -62,6 +62,7 @@ Las claves VAPID y el secreto están en `supabase/functions/.env` y los secretos
    7. `supabase/migrations/20260928000000_pet_cover.sql`
    8. `supabase/migrations/20260928000100_support_reviews.sql`
    9. `supabase/migrations/20260929000000_yearly_plan.sql`
+   10. `supabase/migrations/20260929000100_scan_notified_at.sql`
 
    Con Supabase CLI también sirve `supabase link` y luego `supabase db push`.
 3. **Configurar URLs de Auth.** En *Authentication → URL Configuration*, pon `http://localhost:4200` como *Site URL* y agrega `http://localhost:4200/**` en *Redirect URLs*.
