@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import { Caption, clamp, easeInOut, Icon, LightBackground, Phone, SCREEN_H, SCREEN_W, StatusBar, Tap, useSpring } from './components';
 import { color, sans, type IconName } from './theme';
@@ -88,27 +88,74 @@ function HomeScreen({ petId, glow = 0, android = false }: { petId: number; glow?
 const TOOLBAR_Y = SCREEN_H - 78;
 const TOOL_X = [66, 183, 300, 417, 534];
 
+/**
+ * Mocks of the real mobile screens, drawn at ~1.54 px per CSS px (phone ≈ 390 pt wide, root font 15 px).
+ */
+const WEB = { ink: '#1c2733', muted: '#64748b', surface: '#f7f8f5', brand50: '#effaf6', brand100: '#d8f3e8', brand700: '#166555', brand800: '#155145', ring: '#e2e8f0' };
+const PAD = 25;
+const HEADER = { top: 70, height: 96 };
+
+function WebLogo() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 26, fontWeight: 800, letterSpacing: -0.5, color: WEB.ink }}>
+      <div style={{ width: 52, height: 52, borderRadius: 17, background: color.brand, color: '#fff', display: 'grid', placeItems: 'center' }}><Icon name="paw" size={30} /></div>
+      <span>Pet<span style={{ color: color.brand }}>ID</span></span>
+    </div>
+  );
+}
+
+function WebHeader({ children }: { children: ReactNode }) {
+  return (
+    <div style={{
+      position: 'absolute', top: HEADER.top, left: 0, right: 0, height: HEADER.height, padding: `0 ${PAD}px`, display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', borderBottom: '1.5px solid rgba(15,23,42,0.05)', background: 'rgba(247,248,245,0.9)', zIndex: 2,
+    }}>
+      <WebLogo />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{children}</div>
+    </div>
+  );
+}
+
+function WebButton({ children, primary = false, height = 74, fontSize = 23, style }: { children: ReactNode; primary?: boolean; height?: number; fontSize?: number; style?: CSSProperties }) {
+  return (
+    <div style={{
+      height, borderRadius: 23, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize, fontWeight: 600,
+      background: primary ? color.brand : '#fff', color: primary ? '#fff' : WEB.ink, boxShadow: primary ? 'none' : `inset 0 0 0 1.5px ${WEB.ring}`, ...style,
+    }}>{children}</div>
+  );
+}
+
 function LandingMock({ offset = 0 }: { offset?: number }) {
   return (
-    <div style={{ position: 'absolute', inset: 0, transform: `translateY(${offset}px)` }}>
-      <div style={{ position: 'absolute', top: 96, left: 30, right: 30, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 30, fontWeight: 800, color: color.ink }}>
-          <PetIdAppIcon size={52} /> Pet<span style={{ color: color.brand, marginLeft: -12 }}>ID</span>
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: WEB.surface, transform: `translateY(${offset}px)`, fontFamily: sans }}>
+      <div style={{ position: 'absolute', right: -220, top: -120, width: 560, height: 560, borderRadius: 999, background: `radial-gradient(circle, ${WEB.brand100} 0%, rgba(216,243,232,0) 70%)` }} />
+      <WebHeader>
+        <div style={{ padding: '0 16px', fontSize: 21, fontWeight: 600, color: WEB.muted }}>Ingresar</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '13px 18px', borderRadius: 17, background: color.brand, color: '#fff', fontSize: 20, fontWeight: 600 }}>
+          <Icon name="paw" size={22} /> Activar mi PetID
         </div>
-        <div style={{ padding: '12px 20px', borderRadius: 14, background: color.brand, color: '#fff', fontSize: 19, fontWeight: 700 }}>Activar mi PetID</div>
-      </div>
-      <div style={{ position: 'absolute', top: 210, left: 30, right: 30 }}>
-        <div style={{ display: 'inline-block', padding: '8px 16px', borderRadius: 999, background: '#fff', border: `2px solid ${color.line}`, fontSize: 17, fontWeight: 600, color: color.brandDark }}>Identificación inteligente para mascotas</div>
-        <div style={{ marginTop: 22, fontSize: 56, lineHeight: 1.08, fontWeight: 800, letterSpacing: -1.5, color: color.ink }}>
+      </WebHeader>
+      <div style={{ position: 'absolute', top: 224, left: PAD, right: PAD, color: WEB.ink }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '6px 16px', borderRadius: 999, background: '#fff', boxShadow: `inset 0 0 0 1.5px ${WEB.brand100}`, fontSize: 20, fontWeight: 600, color: WEB.brand700 }}>
+          <Icon name="paw" size={22} /> Identificación inteligente para mascotas
+        </div>
+        <div style={{ marginTop: 29, fontSize: 38, lineHeight: 1.25, fontWeight: 800, letterSpacing: -1 }}>
           Tu mascota no puede decir dónde vive. <span style={{ color: color.brand }}>Su QR sí.</span>
         </div>
-        <div style={{ marginTop: 20, fontSize: 23, lineHeight: 1.45, color: color.muted }}>Una placa con código QR único. Si tu mascota se pierde, quien la encuentre escanea la placa y te avisa al instante.</div>
-      </div>
-      <div style={{ position: 'absolute', top: 700, left: '50%', marginLeft: -170, width: 340, height: 340, borderRadius: 999, background: `linear-gradient(145deg, #23967c, ${color.brandDeep})`, display: 'grid', placeItems: 'center' }}>
-        <div style={{ width: 250, height: 250, borderRadius: 999, background: '#fff', display: 'grid', placeItems: 'center', fontSize: 22, fontWeight: 800, color: color.ink, letterSpacing: 3 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 16, color: color.brand }}>PETID</div>MAX
-            <div style={{ margin: '10px auto 0', width: 110, height: 110, background: `repeating-conic-gradient(${color.ink} 0 25%, #fff 0 50%) 0 0 / 22px 22px`, borderRadius: 6 }} />
+        <div style={{ marginTop: 29, fontSize: 23, lineHeight: 1.5, color: WEB.muted }}>
+          Una placa con código QR único. Si tu mascota se pierde, quien la encuentre escanea la placa y te avisa al instante, sin apps y sin exponer tus datos personales.
+        </div>
+        <WebButton primary style={{ marginTop: 46 }}><Icon name="paw" size={29} /> Cómo funciona</WebButton>
+        <WebButton style={{ marginTop: 18 }}><Icon name="eye" size={29} width={2} /> Ver perfil de ejemplo</WebButton>
+        <div style={{ marginTop: 23, fontSize: 20, color: WEB.muted }}>Pago único · Sin suscripción · Perfil activo para siempre</div>
+        <div style={{ position: 'relative', marginTop: 80, height: 420 }}>
+          <div style={{ position: 'absolute', left: '50%', top: -30, width: 25, height: 62, marginLeft: -12, borderRadius: 999, background: '#cbd5e1', boxShadow: '0 0 0 6px #e2e8f0', zIndex: 1 }} />
+          <div style={{ position: 'absolute', left: '50%', top: 0, width: 415, height: 415, marginLeft: -207, borderRadius: 999, background: 'linear-gradient(135deg, #289d80, #155145)', display: 'grid', placeItems: 'center' }}>
+            <div style={{ width: 340, height: 340, borderRadius: 999, background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: 4, color: WEB.brand700 }}>PETID</div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: WEB.ink }}>MAX</div>
+              <div style={{ marginTop: 10, width: 150, height: 150, background: `repeating-conic-gradient(${WEB.ink} 0 25%, #fff 0 50%) 0 0 / 30px 30px`, borderRadius: 6 }} />
+            </div>
           </div>
         </div>
       </div>
@@ -273,7 +320,7 @@ const INSTALL_DIALOG = { top: 440, height: 360, btnRight: 36, btnBottom: 32, btn
 function ChromePage({ menuPressed }: { menuPressed: number }) {
   return (
     <div style={{ position: 'absolute', inset: 0, background: '#f7f8f5', fontFamily: sans }}>
-      <LandingMock offset={90} />
+      <LandingMock offset={94} />
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 164, background: '#fff', borderBottom: '1px solid #e5e7eb' }}>
         <div style={{ position: 'absolute', left: 22, top: MENU_BTN.y - 22, color: '#444' }}><Icon name="home" size={44} width={2} /></div>
         <div style={{ position: 'absolute', left: 84, right: 150, top: MENU_BTN.y - 32, height: 64, borderRadius: 999, background: '#f1f3f4', display: 'flex', alignItems: 'center', gap: 10, padding: '0 22px', fontSize: 23, color: '#202124' }}>
@@ -378,56 +425,73 @@ export function AndroidInstallScene() {
 
 // ─── Paso 10 · Activar avisos ──────────────────────────────────────────────
 
-const DASH = { card: 330, button: 560, pet: 720 };
+const DASH = { card: 318, cardH: 374, button: 593, buttonH: 70, pet: 738, petEnabled: 394 };
+
+function PetCardMock() {
+  const pill: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 14px', borderRadius: 999, fontSize: 17, fontWeight: 600 };
+  return (
+    <div style={{ borderRadius: 35, background: '#fff', overflow: 'hidden', padding: PAD, boxShadow: '0 0 0 1.5px rgba(15,23,42,0.05), 0 2px 4px rgba(15,23,42,0.05)' }}>
+      <div style={{ display: 'flex', gap: 23 }}>
+        <Img src={staticFile('max.jpg')} style={{ width: 139, height: 139, borderRadius: 23, objectFit: 'cover', objectPosition: '58% 40%', flexShrink: 0 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 9 }}>
+            <span style={{ ...pill, background: WEB.brand100, color: WEB.brand800 }}><span style={{ width: 9, height: 9, borderRadius: 999, background: WEB.brand800 }} /> Protegida</span>
+            <span style={{ ...pill, background: '#f1f5f9', color: WEB.ink, fontWeight: 700, letterSpacing: 1.5 }}>PET-00001</span>
+          </div>
+          <div style={{ marginTop: 8, fontSize: 26, fontWeight: 700, color: WEB.ink }}>Max</div>
+          <div style={{ fontSize: 20, color: WEB.muted }}>Perro · Labrador</div>
+          <span style={{ ...pill, marginTop: 8, background: '#f1f5f9', color: '#334155' }}><Icon name="activity" size={18} width={2.2} /> 0 escaneos</span>
+        </div>
+      </div>
+      <div style={{ marginTop: 23, fontSize: 17, color: WEB.muted }}>Aún no han escaneado su PetID</div>
+      <div style={{ marginTop: 23, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <WebButton height={56} fontSize={20} style={{ borderRadius: 17 }}><Icon name="eye" size={22} width={2} /> Ver perfil</WebButton>
+        <WebButton height={56} fontSize={20} style={{ borderRadius: 17 }}><Icon name="edit" size={22} width={2} /> Editar</WebButton>
+      </div>
+      <WebButton height={56} fontSize={20} style={{ marginTop: 12, borderRadius: 17, background: '#dc2626', color: '#fff', boxShadow: 'none' }}>
+        <Icon name="alert" size={22} width={2} /> Marcar como perdida
+      </WebButton>
+      <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1.5px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', fontSize: 20 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, color: WEB.brand700 }}><Icon name="qr" size={22} width={2} /> Mi PetID y QR</span>
+        <span style={{ color: WEB.muted }}>Reportes</span>
+      </div>
+    </div>
+  );
+}
 
 function Dashboard({ enabled, buttonPressed }: { enabled: number; buttonPressed: number }) {
   return (
-    <div style={{ position: 'absolute', inset: 0, background: '#f7f8f5', fontFamily: sans }}>
-      <div style={{ position: 'absolute', top: 92, left: 30, right: 30, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 28, fontWeight: 800, color: color.ink }}>
-          <PetIdAppIcon size={48} /> Pet<span style={{ color: color.brand, marginLeft: -12 }}>ID</span>
-        </div>
-        <div style={{ width: 52, height: 52, borderRadius: 999, background: color.brandLight, color: color.brandDark, display: 'grid', placeItems: 'center', fontSize: 24, fontWeight: 800 }}>M</div>
+    <div style={{ position: 'absolute', inset: 0, background: WEB.surface, fontFamily: sans, color: WEB.ink }}>
+      <WebHeader>
+        <div style={{ padding: '0 16px', fontSize: 21, fontWeight: 600, color: WEB.muted }}>Mis mascotas</div>
+        <div style={{ padding: '0 12px', color: WEB.muted }}><Icon name="logout" size={25} width={2} /></div>
+      </WebHeader>
+      <div style={{ position: 'absolute', top: 196, left: PAD, right: PAD }}>
+        <div style={{ fontSize: 35, fontWeight: 700, letterSpacing: -0.6 }}>Hola, María 🐾</div>
+        <div style={{ marginTop: 4, fontSize: 23, color: WEB.muted }}>Tus mascotas protegidas con PetID.</div>
       </div>
-      <div style={{ position: 'absolute', top: 186, left: 30, right: 30 }}>
-        <div style={{ fontSize: 40, fontWeight: 800, color: color.ink }}>Hola, María 🐾</div>
-        <div style={{ marginTop: 6, fontSize: 22, color: color.muted }}>Tus mascotas protegidas con PetID.</div>
-      </div>
-      {enabled < 1 && (
-        <div style={{ position: 'absolute', top: DASH.card, left: 30, right: 30, height: 320, borderRadius: 26, background: '#fff', border: `2px solid ${color.line}`, padding: 26, boxSizing: 'border-box', opacity: 1 - enabled }}>
-          <div style={{ width: 64, height: 64, borderRadius: 18, background: color.brandLight, color: color.brandDark, display: 'grid', placeItems: 'center' }}><Icon name="bell" size={34} /></div>
-          <div style={{ marginTop: 18, fontSize: 26, fontWeight: 800, color: color.ink }}>Recibe un aviso cuando escaneen su placa</div>
-          <div style={{ marginTop: 8, fontSize: 20, lineHeight: 1.4, color: color.muted }}>Te llega una notificación con la zona aproximada del escaneo.</div>
-        </div>
-      )}
       {enabled < 1 && (
         <div style={{
-          position: 'absolute', top: DASH.button, left: 56, right: 56, height: 76, borderRadius: 18, background: color.brand, color: '#fff',
-          display: 'grid', placeItems: 'center', fontSize: 26, fontWeight: 800, transform: `scale(${buttonPressed})`, opacity: 1 - enabled,
-        }}>Activar avisos</div>
+          position: 'absolute', top: DASH.card, left: PAD, right: PAD, height: DASH.cardH, borderRadius: 35, background: '#fff', padding: 29, boxSizing: 'border-box',
+          boxShadow: '0 0 0 1.5px rgba(15,23,42,0.05), 0 2px 4px rgba(15,23,42,0.05)', opacity: 1 - enabled,
+        }}>
+          <div style={{ width: 69, height: 69, borderRadius: 23, background: WEB.brand50, color: WEB.brand700, display: 'grid', placeItems: 'center' }}><Icon name="bell" size={37} /></div>
+          <div style={{ marginTop: 23, fontSize: 23, lineHeight: 1.5, fontWeight: 700 }}>Recibe un aviso cuando escaneen su placa</div>
+          <div style={{ marginTop: 6, fontSize: 20, lineHeight: 1.5, color: WEB.muted }}>Te llega una notificación con la zona aproximada del escaneo, y el mapa exacto si la persona comparte su GPS.</div>
+          <WebButton primary height={DASH.buttonH} style={{ position: 'absolute', left: 29, right: 29, top: DASH.button - DASH.card, transform: `scale(${buttonPressed})` }}>
+            Activar avisos
+          </WebButton>
+        </div>
       )}
       {enabled > 0 && (
-        <div style={{
-          position: 'absolute', top: DASH.card, left: 30, right: 30, height: 150, borderRadius: 26, background: color.brandLight, border: `2px solid ${color.mint}`,
-          display: 'flex', alignItems: 'center', gap: 20, padding: '0 26px', opacity: enabled, transform: `scale(${0.9 + enabled * 0.1})`,
-        }}>
-          <div style={{ width: 70, height: 70, borderRadius: 999, background: color.brand, color: '#fff', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Icon name="check" size={40} width={3} /></div>
-          <div>
-            <div style={{ fontSize: 27, fontWeight: 800, color: color.brandDark }}>¡Avisos activados!</div>
-            <div style={{ marginTop: 4, fontSize: 20, color: color.brandDark }}>Te avisaremos cuando escaneen su placa</div>
-          </div>
+        <div style={{ position: 'absolute', top: DASH.card, left: PAD, right: PAD, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px 10px', fontSize: 20, color: WEB.muted, opacity: enabled }}>
+          <span style={{ color: color.brand, display: 'flex' }}><Icon name="bell" size={23} /></span>
+          Avisos activados en este dispositivo.
+          <span style={{ fontWeight: 600, color: '#475569' }}>Desactivar</span>
         </div>
       )}
-      <div style={{
-        position: 'absolute', top: DASH.pet - enabled * 170, left: 30, right: 30, borderRadius: 26, background: '#fff',
-        border: `2px solid ${color.line}`, padding: 22, display: 'flex', gap: 20, alignItems: 'center',
-      }}>
-        <Img src={staticFile('max.jpg')} style={{ width: 110, height: 110, borderRadius: 22, objectFit: 'cover', objectPosition: '58% 45%' }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 30, fontWeight: 800, color: color.ink }}>Max</div>
-          <div style={{ marginTop: 4, fontSize: 20, color: color.muted }}>Labrador · PET-00001</div>
-          <div style={{ marginTop: 10, display: 'inline-block', padding: '6px 14px', borderRadius: 999, background: color.brandLight, color: color.brandDark, fontSize: 17, fontWeight: 700 }}>Activa</div>
-        </div>
+      <div style={{ position: 'absolute', left: PAD, right: PAD, top: DASH.pet - enabled * (DASH.pet - DASH.petEnabled) }}>
+        <PetCardMock />
       </div>
     </div>
   );
@@ -482,7 +546,7 @@ export function NotifyScene() {
         )}
         <StatusBar light={frame < NOTIFY.app + 8} />
         <Tap x={iconX} y={iconY} at={NOTIFY.openIcon} />
-        <Tap x={SCREEN_W / 2} y={DASH.button + 38} at={NOTIFY.button} />
+        <Tap x={SCREEN_W / 2} y={DASH.button + DASH.buttonH / 2} at={NOTIFY.button} />
         <Tap x={SCREEN_W / 2 + 115} y={430 + 262} at={NOTIFY.allow} />
       </Phone>
     </LightBackground>

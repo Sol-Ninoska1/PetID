@@ -1,12 +1,17 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { Icon } from '../../shared/ui/icon';
 import { Logo } from '../../shared/ui/logo';
 
 @Component({
   selector: 'app-auth-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Logo],
+  imports: [Logo, Icon, RouterLink],
   template: `
-    <div class="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
+    <div class="relative flex min-h-dvh flex-col items-center justify-center px-4 py-16">
+      <a routerLink="/" class="btn btn-ghost btn-sm absolute left-3 top-3 sm:left-6 sm:top-6">
+        <app-icon name="arrow-left" class="size-4" /> Volver al inicio
+      </a>
       <app-logo class="mb-8" />
       <div class="card w-full max-w-md p-6 sm:p-8">
         <h1 class="text-2xl font-bold tracking-tight">{{ heading() }}</h1>
