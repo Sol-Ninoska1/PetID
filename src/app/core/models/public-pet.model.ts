@@ -20,9 +20,12 @@ export interface PublicPet {
   contactPhone: string | null;
 }
 
-/** Result of resolving a QR token. `inactive` means the owner paused the public profile. */
+/**
+ * Result of resolving a QR token. `inactive` means the owner paused the public profile.
+ * `expired`: the yearly plan ended, so only the basics come back (name, photo, contact); the rest is null.
+ */
 export type PublicPetIdState =
   | { status: 'unactivated'; code: string }
   | { status: 'blocked' }
   | { status: 'inactive' }
-  | { status: 'active'; pet: PublicPet };
+  | { status: 'active'; expired: boolean; pet: PublicPet };

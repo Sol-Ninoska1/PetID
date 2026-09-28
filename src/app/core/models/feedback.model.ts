@@ -1,4 +1,4 @@
-export type SupportTopic = 'activacion' | 'pedido' | 'tecnico' | 'sugerencia' | 'otro';
+export type SupportTopic = 'activacion' | 'pedido' | 'renovacion' | 'tecnico' | 'sugerencia' | 'otro';
 export type SupportStatus = 'nuevo' | 'resuelto';
 
 export interface SupportMessageInput {

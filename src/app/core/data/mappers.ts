@@ -31,6 +31,7 @@ export const toPetIdSummary = (r: Row): PetIdSummary => ({
   qrToken: r['qr_token'],
   status: r['status'],
   activatedAt: r['activated_at'] ?? null,
+  expiresAt: r['expires_at'] ?? null,
 });
 
 export const toPetIdRecord = (r: Row): PetIdRecord => {
@@ -107,26 +108,26 @@ export const toPetRow = (p: PetInput): Row => ({
 export const toPublicPet = (r: Row): PublicPet => ({
   name: r['name'],
   species: r['species'],
-  breed: r['breed'],
+  breed: r['breed'] ?? null,
   sex: r['sex'],
-  color: r['color'],
-  birthDate: r['birth_date'],
+  color: r['color'] ?? null,
+  birthDate: r['birth_date'] ?? null,
   weight: r['weight'] == null ? null : Number(r['weight']),
-  photoUrl: r['photo_url'],
+  photoUrl: r['photo_url'] ?? null,
   coverUrl: r['cover_url'] ?? null,
-  description: r['description'],
+  description: r['description'] ?? null,
   isLost: r['is_lost'],
-  specialNeeds: r['special_needs'],
-  allergies: r['allergies'],
-  medications: r['medications'],
+  specialNeeds: r['special_needs'] ?? null,
+  allergies: r['allergies'] ?? null,
+  medications: r['medications'] ?? null,
   ownerFirstName: r['owner_first_name'],
-  contactPhone: r['contact_phone'],
+  contactPhone: r['contact_phone'] ?? null,
 });
 
 export const toPublicPetIdState = (r: Row): PublicPetIdState => {
   switch (r['status']) {
     case 'active':
-      return { status: 'active', pet: toPublicPet(r['pet']) };
+      return { status: 'active', expired: r['expired'] === true, pet: toPublicPet(r['pet']) };
     case 'unactivated':
       return { status: 'unactivated', code: r['code'] };
     case 'inactive':

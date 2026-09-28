@@ -9,6 +9,8 @@ export interface PetIdSummary {
   qrToken: string;
   status: PetIdStatus;
   activatedAt: string | null;
+  /** End of the paid year. Null = never expires (demo, or not activated yet). */
+  expiresAt: string | null;
 }
 
 /** Admin view of a PetID with its (optional) pet and owner. */
@@ -20,6 +22,17 @@ export interface PetIdRecord extends PetIdSummary {
   pet: { id: string; name: string; species: PetSpecies; photoUrl: string | null } | null;
   owner: { id: string; name: string; email: string; phone: string | null } | null;
 }
+
+/** The owner starts seeing the renewal notice this many days before the plan ends. */
+export const RENEWAL_NOTICE_DAYS = 30;
+
+/** Days until the yearly plan ends (0 or less once expired), or null when it never expires. */
+export function planDaysLeft(expiresAt: string | null, now = Date.now()): number | null {
+  return expiresAt ? Math.ceil((Date.parse(expiresAt) - now) / 86_400_000) : null;
+}
+
+export const isPlanExpired = (expiresAt: string | null, now = Date.now()): boolean =>
+  !!expiresAt && Date.parse(expiresAt) <= now;
 
 export const PET_ID_STATUSES: PetIdStatus[] = ['available', 'reserved', 'sold', 'activated', 'blocked'];
 

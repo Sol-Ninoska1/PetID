@@ -3,7 +3,16 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { PetsRepository } from '../../../core/data/pets.repository';
-import { EmergencyContactInput, PetInput, PetSex, PetSpecies, SEX_LABELS, SPECIES_EMOJI, SPECIES_LABELS } from '../../../core/models';
+import {
+  EmergencyContactInput,
+  isPlanExpired,
+  PetInput,
+  PetSex,
+  PetSpecies,
+  SEX_LABELS,
+  SPECIES_EMOJI,
+  SPECIES_LABELS,
+} from '../../../core/models';
 import { Icon } from '../../../shared/ui/icon';
 import { ImageCropper } from '../../../shared/ui/image-cropper';
 import { PHONE_PATTERN } from '../../../shared/utils/contact';
@@ -22,6 +31,7 @@ const ACTIVATION_ERRORS: [RegExp, string][] = [
   [/pet_id_already_activated/, 'Esta PetID ya está activada.'],
   [/pet_id_blocked/, 'Esta PetID está bloqueada. Escríbenos para ayudarte.'],
   [/pet_id_not_found/, 'No encontramos esta PetID. Revisa el enlace del QR.'],
+  [/pet_id_expired/, 'El plan de esta mascota venció. Renuévalo para volver a editar su perfil.'],
 ];
 
 function saveErrorMessage(e: unknown): string {
@@ -59,6 +69,8 @@ export class PetForm implements OnInit, OnDestroy {
 
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
+  /** PetID code when editing a pet whose yearly plan expired (the database rejects the save). */
+  protected readonly expiredCode = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly photo = new EditablePhoto();
   protected readonly cover = new EditablePhoto();
@@ -93,6 +105,7 @@ export class PetForm implements OnInit, OnDestroy {
     this.loading.set(true);
     try {
       const { pet, emergencyContact } = await this.petsRepo.getById(id);
+      if (pet.petId && isPlanExpired(pet.petId.expiresAt)) this.expiredCode.set(pet.petId.code);
       this.photo.setSaved(pet.photoUrl);
       this.cover.setSaved(pet.coverUrl);
       this.form.patchValue({

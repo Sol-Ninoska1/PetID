@@ -1,6 +1,7 @@
 // Sends a Web Push notification to the pet owner's devices when their PetID is scanned,
 // a finder shares their GPS location, or someone reports the pet as found.
-// Called by the database triggers in 20260927000100_push_triggers.sql with the header `x-webhook-secret`.
+// Called by the database triggers in 20260927000100_push_triggers.sql with the header `x-webhook-secret`,
+// and daily by private.send_expiry_reminders (20260929000000_yearly_plan.sql) for PetIDs about to expire.
 // Deploy with JWT verification off (the shared secret authenticates the caller).
 // Secrets: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:you@domain), WEBHOOK_SECRET.
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -9,8 +10,8 @@ import webpush from 'npm:web-push@3.6.7';
 type Table = 'scans' | 'location_shares' | 'found_reports';
 
 interface WebhookPayload {
-  type: 'INSERT';
-  table: Table;
+  type: 'INSERT' | 'REMINDER';
+  table: Table | 'pet_ids';
   record: { id: string };
 }
 
@@ -87,6 +88,51 @@ async function buildNotification(table: Table, row: Record<string, any>, pet: Re
   };
 }
 
+interface Target {
+  ownerId: string;
+  notification: Notification;
+  urgency: 'normal' | 'high';
+}
+
+async function activityTarget(table: Table, id: string): Promise<Target | null> {
+  // Re-read the row instead of trusting the payload.
+  const row = await load(table, id);
+  const pet = row?.pets;
+  if (!row || !pet) return null;
+
+  const notification = await buildNotification(table, row, pet);
+  if (!notification) return null;
+  return { ownerId: pet.owner_id, notification, urgency: table === 'scans' && !pet.is_lost ? 'normal' : 'high' };
+}
+
+/** Whole days between two instants, counted on UTC dates like the SQL that schedules the reminders. */
+const utcDaysBetween = (from: Date, to: Date) => Math.floor(to.getTime() / 86_400_000) - Math.floor(from.getTime() / 86_400_000);
+
+async function expiryReminder(petIdId: string): Promise<Target | null> {
+  const { data } = await db
+    .from('pet_ids')
+    .select('expires_at, owner_id, pet:pets!pet_ids_pet_id_fkey(name)')
+    .eq('id', petIdId)
+    .maybeSingle();
+  if (!data?.expires_at || !data.owner_id) return null;
+  const pet = Array.isArray(data.pet) ? data.pet[0] : data.pet;
+  if (!pet) return null;
+
+  const days = utcDaysBetween(new Date(), new Date(data.expires_at));
+  if (days < 0) return null;
+  const when = days === 0 ? 'vence hoy' : days === 1 ? 'vence mañana' : `vence en ${days} días`;
+  return {
+    ownerId: data.owner_id,
+    urgency: 'normal',
+    notification: {
+      title: `⏰ El plan de ${pet.name} ${when}`,
+      body: 'Renuévalo para seguir recibiendo avisos y editar su perfil. Su placa seguirá mostrando lo básico.',
+      tag: `expiry-${petIdId}`,
+      url: '/dashboard',
+    },
+  };
+}
+
 /** Payload format understood by Angular's service worker (ngsw). */
 function ngswPayload(n: Notification) {
   const open = (url: string) =>
@@ -117,30 +163,25 @@ Deno.serve(async (req) => {
   }
 
   const { table, record } = (await req.json()) as WebhookPayload;
-  if (!['scans', 'location_shares', 'found_reports'].includes(table) || !record?.id) {
+  if (!['scans', 'location_shares', 'found_reports', 'pet_ids'].includes(table) || !record?.id) {
     return new Response('ignored', { status: 200 });
   }
 
-  // Re-read the row instead of trusting the payload.
-  const row = await load(table, record.id);
-  const pet = row?.pets;
-  if (!row || !pet) return new Response('no pet', { status: 200 });
-
-  const notification = await buildNotification(table, row, pet);
-  if (!notification) return new Response('throttled', { status: 200 });
+  const target = table === 'pet_ids' ? await expiryReminder(record.id) : await activityTarget(table, record.id);
+  if (!target) return new Response('nothing to send', { status: 200 });
 
   const { data: subscriptions } = await db
     .from('push_subscriptions')
     .select('id, endpoint, p256dh, auth')
-    .eq('user_id', pet.owner_id);
+    .eq('user_id', target.ownerId);
   if (!subscriptions?.length) return new Response('no subscriptions', { status: 200 });
 
-  const payload = ngswPayload(notification);
+  const payload = ngswPayload(target.notification);
   const results = await Promise.allSettled(
     subscriptions.map((s) =>
       webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, {
         TTL: 60 * 60,
-        urgency: table === 'scans' && !pet.is_lost ? 'normal' : 'high',
+        urgency: target.urgency,
       }),
     ),
   );

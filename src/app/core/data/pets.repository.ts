@@ -4,7 +4,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { clean, one, toEmergencyContact, toPet, toPetIdSummary, toPetRow } from './mappers';
 
 const PHOTO_BUCKET = 'pet-photos';
-const PET_ID_FIELDS = 'petid:pet_ids(id, code, qr_token, status, activated_at)';
+const PET_ID_FIELDS = 'petid:pet_ids(id, code, qr_token, status, activated_at, expires_at)';
 
 /** Owner-side pets and PetIDs. RLS guarantees every query only sees and changes the signed-in owner's rows. */
 @Injectable({ providedIn: 'root' })
@@ -45,7 +45,7 @@ export class PetsRepository {
     if (!userId) return null;
     const { data, error } = await this.db
       .from('pet_ids')
-      .select('id, code, qr_token, status, activated_at, pet_id')
+      .select('id, code, qr_token, status, activated_at, expires_at, pet_id')
       .eq('qr_token', qrToken)
       .eq('owner_id', userId)
       .maybeSingle();

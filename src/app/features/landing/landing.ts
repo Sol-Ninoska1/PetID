@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { ProductsRepository } from '../../core/data/products.repository';
@@ -25,7 +25,14 @@ export class Landing implements OnInit {
   protected readonly tutorialPlaying = signal(false);
   protected readonly supportPreset = signal<SupportPreset | null>(null);
 
+  /** Query param from the owner's "Renovar" button: PetID code to renew. */
+  readonly renovar = input<string>();
+
   async ngOnInit() {
+    const code = this.renovar()?.trim();
+    if (code && /^[A-Z0-9-]{1,20}$/i.test(code)) {
+      this.supportPreset.set({ topic: 'renovacion', message: `Hola, quiero renovar el plan de mi PetID ${code} por un año más.` });
+    }
     this.catalog.set(await this.productsRepo.catalog().catch(() => []));
   }
 
@@ -81,6 +88,10 @@ export class Landing implements OnInit {
     {
       q: '¿Sirve para gatos y otras mascotas?',
       a: 'Sí. Al registrarla eliges si es perro, gato u otra mascota, y su perfil muestra sus datos igual.',
+    },
+    {
+      q: '¿Qué pasa después del primer año?',
+      a: 'Te avisamos 30 días antes y puedes renovarlo por un año más escribiéndonos. Si no renuevas, la placa sigue funcionando en modo básico: al escanearla se ve su foto, su nombre y cómo contactarte, pero ya no recibes avisos al celular ni puedes editar su perfil.',
     },
     {
       q: '¿Puedo usar la misma placa con otra mascota?',

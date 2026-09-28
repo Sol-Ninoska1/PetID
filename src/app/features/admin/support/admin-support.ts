@@ -8,6 +8,7 @@ import { AdminTable } from '../ui/admin-table';
 const TOPIC: Record<SupportTopic, string> = {
   activacion: 'Activación',
   pedido: 'Compra / envío',
+  renovacion: 'Renovación',
   tecnico: 'Técnico',
   sugerencia: 'Sugerencia',
   otro: 'Otro',

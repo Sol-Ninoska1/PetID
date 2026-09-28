@@ -44,6 +44,12 @@ export class PublicPetPage implements OnInit {
     return s?.status === 'active' ? s.pet : null;
   });
 
+  /** Basic mode (plan expired): no GPS sharing; the database already left out the extra details. */
+  protected readonly expired = computed(() => {
+    const s = this.state();
+    return s?.status === 'active' && s.expired;
+  });
+
   protected readonly unactivatedCode = computed(() => {
     const s = this.state();
     return s?.status === 'unactivated' ? s.code : null;
@@ -92,7 +98,7 @@ export class PublicPetPage implements OnInit {
       this.scanId = fetchIpLocation()
         .then((geo) => this.repo.recordScan(token, geo))
         .catch(() => null);
-      if (state.status === 'active' && state.pet.isLost && this.locationState() === 'idle') {
+      if (state.status === 'active' && !state.expired && state.pet.isLost && this.locationState() === 'idle') {
         void this.sendLocation(true);
       }
     } catch {

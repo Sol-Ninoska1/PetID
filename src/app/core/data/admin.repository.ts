@@ -119,6 +119,12 @@ export class AdminRepository {
     if (error) throw error;
   }
 
+  /** Extends the yearly plan (from today if it already expired). Call it after receiving the payment. */
+  async renewPetId(id: string, years = 1): Promise<void> {
+    const { error } = await this.db.rpc('admin_renew_pet_id', { p_id: id, p_years: years });
+    if (error) throw error;
+  }
+
   async listPets(limit = 300): Promise<AdminPetRow[]> {
     const { data, error } = await this.db
       .from('pets')

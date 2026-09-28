@@ -5,6 +5,17 @@
 
   <h1 class="text-2xl font-bold tracking-tight">Editar mascota</h1>
   <p class="mt-1 text-muted">Los cambios se reflejan al instante al escanear su PetID, sin fabricar otro collar.</p>
+
+  @if (expiredCode(); as code) {
+    <div class="mt-4 flex flex-col gap-3 rounded-2xl bg-red-50 p-4 ring-1 ring-red-200 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-sm text-red-900">
+        <strong class="text-red-700">El plan de esta mascota venció.</strong> Renuévalo para volver a editar su perfil.
+      </p>
+      <a routerLink="/" [queryParams]="{ renovar: code }" fragment="soporte" class="btn btn-primary btn-sm shrink-0">
+        <app-icon name="sparkles" class="size-4" /> Renovar
+      </a>
+    </div>
+  }
 }
 
 @if (loading()) {
@@ -221,7 +232,7 @@
         } @else {
           <span></span>
         }
-        <button type="submit" class="btn btn-primary sm:min-w-48" [disabled]="saving()">
+        <button type="submit" class="btn btn-primary sm:min-w-48" [disabled]="saving() || !!expiredCode()">
           {{ saving() ? 'Guardando…' : activating() ? 'Activar mi PetID' : 'Guardar cambios' }}
         </button>
       </div>

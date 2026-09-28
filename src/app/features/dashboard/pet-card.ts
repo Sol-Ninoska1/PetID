@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { PetWithStats, SPECIES_EMOJI, SPECIES_LABELS } from '../../core/models';
+import {
+  isPlanExpired,
+  PetWithStats,
+  planDaysLeft,
+  RENEWAL_NOTICE_DAYS,
+  SPECIES_EMOJI,
+  SPECIES_LABELS,
+} from '../../core/models';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { Icon } from '../../shared/ui/icon';
 import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
@@ -9,7 +17,7 @@ import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
 @Component({
   selector: 'app-pet-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Icon, PetStatusBadge, RelativeTimePipe],
+  imports: [RouterLink, DatePipe, Icon, PetStatusBadge, RelativeTimePipe],
   template: `
     @if (pet(); as pet) {
     <article class="card overflow-hidden" [class.ring-2]="pet.isLost" [class.ring-red-400]="pet.isLost" [class.ring-brand-400]="highlight() && !pet.isLost">
@@ -67,16 +75,48 @@ import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
           {{ pet.lastScanAt ? 'Último escaneo ' + (pet.lastScanAt | relativeTime) : 'Aún no han escaneado su PetID' }}
         </p>
 
+        @if (plan(); as plan) {
+          @if (plan.expired) {
+            <div class="mt-3 rounded-2xl bg-red-50 p-3 text-sm ring-1 ring-red-200">
+              <p class="font-semibold text-red-700">Plan vencido el {{ plan.expiresAt | date: 'dd/MM/yyyy' }}</p>
+              <p class="mt-0.5 text-red-900/80">Su placa muestra solo lo básico, no recibes avisos y no puedes editar su perfil.</p>
+            </div>
+          } @else if (plan.daysLeft <= renewalNoticeDays) {
+            <div class="mt-3 rounded-2xl bg-amber-50 p-3 text-sm ring-1 ring-amber-200">
+              <p class="font-semibold text-amber-900">
+                Su plan vence {{ plan.daysLeft === 1 ? 'mañana' : 'en ' + plan.daysLeft + ' días' }}
+                <span class="font-normal">({{ plan.expiresAt | date: 'dd/MM/yyyy' }})</span>
+              </p>
+              <p class="mt-0.5 text-amber-900/80">Renuévalo para seguir recibiendo avisos y editando su perfil.</p>
+            </div>
+          } @else {
+            <p class="mt-1 text-xs text-muted">Plan activo hasta el {{ plan.expiresAt | date: 'dd/MM/yyyy' }}</p>
+          }
+        }
+
         <div class="mt-4 grid grid-cols-2 gap-2">
           @if (pet.petId; as petId) {
             <a [routerLink]="['/p', petId.qrToken]" target="_blank" class="btn btn-secondary btn-sm">
               <app-icon name="eye" class="size-4" /> Ver perfil
             </a>
           }
-          <a [routerLink]="['/pets', pet.id, 'edit']" class="btn btn-secondary btn-sm">
-            <app-icon name="edit" class="size-4" /> Editar
-          </a>
+          @if (plan()?.expired) {
+            <a routerLink="/" [queryParams]="{ renovar: pet.petId?.code }" fragment="soporte" class="btn btn-primary btn-sm">
+              <app-icon name="sparkles" class="size-4" /> Renovar
+            </a>
+          } @else {
+            <a [routerLink]="['/pets', pet.id, 'edit']" class="btn btn-secondary btn-sm">
+              <app-icon name="edit" class="size-4" /> Editar
+            </a>
+          }
         </div>
+        @if (plan(); as plan) {
+          @if (!plan.expired && plan.daysLeft <= renewalNoticeDays) {
+            <a routerLink="/" [queryParams]="{ renovar: pet.petId?.code }" fragment="soporte" class="btn btn-primary btn-sm mt-2 w-full">
+              <app-icon name="sparkles" class="size-4" /> Renovar un año más
+            </a>
+          }
+        }
 
         <button type="button" class="btn btn-sm mt-2 w-full"
           [class]="pet.isLost ? 'btn-primary' : 'btn-danger'"
@@ -112,4 +152,12 @@ export class PetCard {
 
   protected readonly speciesLabels = SPECIES_LABELS;
   protected readonly speciesEmoji = SPECIES_EMOJI;
+  protected readonly renewalNoticeDays = RENEWAL_NOTICE_DAYS;
+
+  /** Null when the PetID never expires (demo). */
+  protected readonly plan = computed(() => {
+    const expiresAt = this.pet().petId?.expiresAt ?? null;
+    const daysLeft = planDaysLeft(expiresAt);
+    return expiresAt && daysLeft !== null ? { expiresAt, daysLeft, expired: isPlanExpired(expiresAt) } : null;
+  });
 }

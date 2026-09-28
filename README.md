@@ -21,6 +21,14 @@ Admin genera PetID genérica (PET-00001 + qr_token aleatorio)
 - Si el dueño elimina a su mascota, la PetID vuelve a *Vendida* y se puede activar de nuevo.
 - Cada escaneo queda registrado (fecha, tipo de dispositivo y zona aproximada), también antes de activar.
 
+## Plan anual
+
+- Activar la PetID incluye **1 año de servicio completo** (`pet_ids.expires_at`). Eliminar la mascota y volver a activar la placa no reinicia el año.
+- **Al vencer, modo básico:** el QR sigue mostrando foto, nombre, raza y cómo contactar al dueño (Llamar/WhatsApp y el formulario "Encontré esta mascota"). Se ocultan descripción, datos de salud y el botón de GPS. El dueño no puede editar el perfil (salvo marcarla perdida/encontrada o pausarla) y los escaneos ya no le notifican. Los reportes de "la encontré" sí le notifican siempre.
+- **Aviso previo:** el dashboard muestra el vencimiento y, desde 30 días antes, un aviso con el botón *Renovar*, que abre el formulario de soporte con el tema "Renovar mi plan". Un job diario de `pg_cron` envía una notificación push a los 30 días, a los 7 días y el día que vence (usa la misma función `push-owner`).
+- **Renovar:** tras recibir el pago, en *Admin → PetIDs → (código) → Renovar 1 año*. Suma un año desde hoy si ya venció, o desde su fecha de vencimiento si aún no vence.
+- Las PetIDs demo (`demo-*`) no vencen.
+
 ## Aviso automático al escanear
 
 1. **Zona aproximada en cada escaneo.** La página pública consulta `/api/geo` (Cloudflare Pages Function en `functions/api/geo.js`), que devuelve la ciudad y región según la conexión del visitante. No se guarda su IP. Es una estimación que puede fallar por varios kilómetros. En desarrollo local no hay `/api/geo` y el escaneo se guarda sin zona.
@@ -53,6 +61,7 @@ Las claves VAPID y el secreto están en `supabase/functions/.env` y los secretos
    6. `supabase/migrations/20260927000300_products.sql`
    7. `supabase/migrations/20260928000000_pet_cover.sql`
    8. `supabase/migrations/20260928000100_support_reviews.sql`
+   9. `supabase/migrations/20260929000000_yearly_plan.sql`
 
    Con Supabase CLI también sirve `supabase link` y luego `supabase db push`.
 3. **Configurar URLs de Auth.** En *Authentication → URL Configuration*, pon `http://localhost:4200` como *Site URL* y agrega `http://localhost:4200/**` en *Redirect URLs*.

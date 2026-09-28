@@ -146,27 +146,29 @@
 
                 <app-contact-owner [phone]="pet.contactPhone" [petName]="pet.name" />
 
-                @if (autoLocating()) {
-                  <p class="rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-red-200" role="status">
-                    📍 Tu navegador te preguntará si compartes tu ubicación. Si aceptas, solo la recibe la familia de
-                    {{ pet.name }}, para que sepan dónde está.
-                  </p>
-                }
-                <button type="button"
-                  class="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-50 px-4 py-3.5 font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100 active:scale-[0.99] disabled:opacity-70"
-                  [disabled]="locationState() === 'sending' || locationState() === 'sent'" (click)="sendLocation()">
-                  <app-icon [name]="locationState() === 'sent' ? 'check' : 'map-pin'" class="size-5" />
-                  @switch (locationState()) {
-                    @case ('sending') { Obteniendo ubicación… }
-                    @case ('sent') { Ubicación enviada }
-                    @default { Enviar mi ubicación }
+                @if (!expired()) {
+                  @if (autoLocating()) {
+                    <p class="rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-red-200" role="status">
+                      📍 Tu navegador te preguntará si compartes tu ubicación. Si aceptas, solo la recibe la familia de
+                      {{ pet.name }}, para que sepan dónde está.
+                    </p>
                   }
-                </button>
-                @if (locationState() === 'sent') {
-                  <p class="alert-success text-center">Tu ubicación fue enviada al dueño.</p>
-                }
-                @if (locationError()) {
-                  <p class="alert-error">{{ locationError() }}</p>
+                  <button type="button"
+                    class="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-50 px-4 py-3.5 font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100 active:scale-[0.99] disabled:opacity-70"
+                    [disabled]="locationState() === 'sending' || locationState() === 'sent'" (click)="sendLocation()">
+                    <app-icon [name]="locationState() === 'sent' ? 'check' : 'map-pin'" class="size-5" />
+                    @switch (locationState()) {
+                      @case ('sending') { Obteniendo ubicación… }
+                      @case ('sent') { Ubicación enviada }
+                      @default { Enviar mi ubicación }
+                    }
+                  </button>
+                  @if (locationState() === 'sent') {
+                    <p class="alert-success text-center">Tu ubicación fue enviada al dueño.</p>
+                  }
+                  @if (locationError()) {
+                    <p class="alert-error">{{ locationError() }}</p>
+                  }
                 }
               </div>
 
@@ -176,8 +178,12 @@
                   <ol class="mt-2 list-inside list-decimal space-y-1.5 text-sm">
                     <li>Si es posible, mantén a {{ pet.name }} en un lugar seguro y tranquilo.</li>
                     <li>Pulsa <strong>"Encontré esta mascota"</strong> para avisar a su familia.</li>
-                    <li>Envía tu ubicación para que sepan dónde está.</li>
-                    <li>Ofrécele agua, pero no le des comida si tiene alergias indicadas abajo.</li>
+                    @if (!expired()) {
+                      <li>Envía tu ubicación para que sepan dónde está.</li>
+                      <li>Ofrécele agua, pero no le des comida si tiene alergias indicadas abajo.</li>
+                    } @else {
+                      <li>Ofrécele agua, pero no le des comida hasta hablar con su familia.</li>
+                    }
                   </ol>
                 </section>
               }

@@ -17,6 +17,7 @@ export interface SupportPreset {
 const TOPICS: { value: SupportTopic; label: string }[] = [
   { value: 'activacion', label: 'Activación de mi PetID' },
   { value: 'pedido', label: 'Compra o envío' },
+  { value: 'renovacion', label: 'Renovar mi plan' },
   { value: 'tecnico', label: 'Problema técnico' },
   { value: 'sugerencia', label: 'Sugerencia' },
   { value: 'otro', label: 'Otro' },

@@ -2,7 +2,14 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdminRepository } from '../../../core/data/admin.repository';
-import { PET_ID_STATUS_LABELS, PetIdRecord, PetIdStatus, SPECIES_LABELS, allowedPetIdTransitions } from '../../../core/models';
+import {
+  PET_ID_STATUS_LABELS,
+  PetIdRecord,
+  PetIdStatus,
+  SPECIES_LABELS,
+  allowedPetIdTransitions,
+  isPlanExpired,
+} from '../../../core/models';
 import { Icon, IconName } from '../../../shared/ui/icon';
 import { PetIdStatusBadge } from '../../../shared/ui/pet-id-status-badge';
 import { QrCard } from '../../../shared/ui/qr-card';
@@ -64,6 +71,16 @@ const ACTIONS: Record<PetIdStatus, { label: string; icon: IconName }> = {
                 <dt class="text-xs text-muted">Activada</dt>
                 <dd class="font-medium">{{ item.activatedAt ? (item.activatedAt | date: 'dd/MM/yyyy HH:mm') : '—' }}</dd>
               </div>
+              <div class="rounded-2xl px-3 py-2" [class]="expired() ? 'bg-red-50 text-red-700' : 'bg-surface'">
+                <dt class="text-xs" [class.text-muted]="!expired()">Plan vence</dt>
+                <dd class="font-medium">
+                  @if (item.expiresAt) {
+                    {{ item.expiresAt | date: 'dd/MM/yyyy' }}{{ expired() ? ' · Vencido' : '' }}
+                  } @else {
+                    {{ item.pet ? 'Sin vencimiento' : '—' }}
+                  }
+                </dd>
+              </div>
               @if (item.notes) {
                 <div class="rounded-2xl bg-surface px-3 py-2 sm:col-span-2">
                   <dt class="text-xs text-muted">Nota interna</dt>
@@ -85,6 +102,20 @@ const ACTIONS: Record<PetIdStatus, { label: string; icon: IconName }> = {
                 </div>
                 @if (item.status === 'available' || item.status === 'reserved' || item.status === 'sold') {
                   <p class="mt-3 text-xs text-muted">"Activada" no se asigna a mano: ocurre cuando el comprador escanea el QR y registra a su mascota.</p>
+                }
+              </div>
+            }
+            @if (item.expiresAt) {
+              <div class="mt-5 border-t border-slate-100 pt-4">
+                <p class="text-sm font-semibold">Plan anual</p>
+                <p class="mt-1 text-xs text-muted">
+                  Cuando el cliente te pague la renovación, suma un año. Si ya venció, cuenta desde hoy; si no, desde su fecha de vencimiento.
+                </p>
+                <button type="button" class="btn btn-primary btn-sm mt-3" [disabled]="busy()" (click)="renew()">
+                  <app-icon name="sparkles" class="size-4" /> Renovar 1 año
+                </button>
+                @if (renewed()) {
+                  <p class="alert-success mt-3">Listo: ahora vence el {{ item.expiresAt | date: 'dd/MM/yyyy' }}.</p>
                 }
               </div>
             }
@@ -141,6 +172,8 @@ export class PetIdDetail implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly actionError = signal<string | null>(null);
   protected readonly busy = signal(false);
+  protected readonly renewed = signal(false);
+  protected readonly expired = computed(() => isPlanExpired(this.item()?.expiresAt ?? null));
 
   protected readonly actions = computed(() => {
     const item = this.item();
@@ -166,6 +199,23 @@ export class PetIdDetail implements OnInit {
       this.item.set(await this.repo.getPetId(item.id));
     } catch {
       this.actionError.set(`No pudimos cambiar el estado a ${PET_ID_STATUS_LABELS[status].toLowerCase()}.`);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async renew() {
+    const item = this.item()!;
+    if (!confirm(`¿Renovar ${item.code} por 1 año? Hazlo solo después de recibir el pago.`)) return;
+    this.busy.set(true);
+    this.actionError.set(null);
+    this.renewed.set(false);
+    try {
+      await this.repo.renewPetId(item.id);
+      this.item.set(await this.repo.getPetId(item.id));
+      this.renewed.set(true);
+    } catch {
+      this.actionError.set('No pudimos renovar el plan.');
     } finally {
       this.busy.set(false);
     }

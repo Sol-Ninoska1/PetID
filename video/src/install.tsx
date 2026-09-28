@@ -147,7 +147,7 @@ function LandingMock({ offset = 0 }: { offset?: number }) {
         </div>
         <WebButton primary style={{ marginTop: 46 }}><Icon name="paw" size={29} /> Cómo funciona</WebButton>
         <WebButton style={{ marginTop: 18 }}><Icon name="eye" size={29} width={2} /> Ver perfil de ejemplo</WebButton>
-        <div style={{ marginTop: 23, fontSize: 20, color: WEB.muted }}>Pago único · Sin suscripción · Perfil activo para siempre</div>
+        <div style={{ marginTop: 23, fontSize: 20, color: WEB.muted }}>Incluye 1 año de servicio · Sin mensualidades</div>
         <div style={{ position: 'relative', marginTop: 80, height: 420 }}>
           <div style={{ position: 'absolute', left: '50%', top: -30, width: 25, height: 62, marginLeft: -12, borderRadius: 999, background: '#cbd5e1', boxShadow: '0 0 0 6px #e2e8f0', zIndex: 1 }} />
           <div style={{ position: 'absolute', left: '50%', top: 0, width: 415, height: 415, marginLeft: -207, borderRadius: 999, background: 'linear-gradient(135deg, #289d80, #155145)', display: 'grid', placeItems: 'center' }}>

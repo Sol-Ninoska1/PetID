@@ -9,6 +9,7 @@ const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SE
 const TOPICS: Record<string, string> = {
   activacion: 'Activación de mi PetID',
   pedido: 'Compra o envío',
+  renovacion: 'Renovar mi plan',
   tecnico: 'Problema técnico',
   sugerencia: 'Sugerencia',
   otro: 'Otro',
