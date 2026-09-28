@@ -3,6 +3,7 @@ import { fade } from '@remotion/transitions/fade';
 import { slide } from '@remotion/transitions/slide';
 import type { ComponentType } from 'react';
 import { AccountScene, ActivateScene, CoverScene, DataScene, HealthScene, PhotoScene } from './activation';
+import { AndroidInstallScene, InstallScene, NotifyScene } from './install';
 import { AlertScene, CollarScene, HookScene, OutroScene, ProfileScene, ScanScene } from './scenes';
 
 type Presentation = TransitionPresentation<Record<string, unknown>>;
@@ -21,6 +22,9 @@ const scenes: { id: string; frames: number; Scene: ComponentType; enter?: Presen
   { id: 'data', frames: 290, Scene: DataScene, enter: fadeIn },
   { id: 'health', frames: 260, Scene: HealthScene, enter: fadeIn },
   { id: 'activate', frames: 190, Scene: ActivateScene, enter: fadeIn },
+  { id: 'install', frames: 280, Scene: InstallScene, enter: slideIn },
+  { id: 'android', frames: 250, Scene: AndroidInstallScene, enter: slideIn },
+  { id: 'notify', frames: 240, Scene: NotifyScene, enter: fadeIn },
   { id: 'profile', frames: 230, Scene: ProfileScene, enter: slideIn },
   { id: 'alert', frames: 230, Scene: AlertScene, enter: slideIn },
   { id: 'outro', frames: 150, Scene: OutroScene, enter: fadeIn },

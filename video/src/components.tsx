@@ -94,8 +94,8 @@ export function Caption({ step, badge, title, subtitle, delay = 4, dark = false 
 }
 
 /** iPhone-like frame. Children are laid out in a SCREEN_W × SCREEN_H box. */
-export function Phone({ children, top = 540, delay = 0, style }: {
-  children: ReactNode; top?: number; delay?: number; style?: CSSProperties;
+export function Phone({ children, top = 540, delay = 0, style, android = false }: {
+  children: ReactNode; top?: number; delay?: number; style?: CSSProperties; android?: boolean;
 }) {
   const enter = useSpring(delay, { damping: 16 });
   return (
@@ -107,7 +107,9 @@ export function Phone({ children, top = 540, delay = 0, style }: {
     }}>
       <div style={{ position: 'absolute', inset: BEZEL, borderRadius: 80, overflow: 'hidden', background: '#fff' }}>
         {children}
-        <div style={{ position: 'absolute', top: 20, left: '50%', width: 180, height: 52, marginLeft: -90, borderRadius: 30, background: '#000', zIndex: 50 }} />
+        {android
+          ? <div style={{ position: 'absolute', top: 26, left: '50%', width: 34, height: 34, marginLeft: -17, borderRadius: 999, background: '#000', zIndex: 50 }} />
+          : <div style={{ position: 'absolute', top: 20, left: '50%', width: 180, height: 52, marginLeft: -90, borderRadius: 30, background: '#000', zIndex: 50 }} />}
       </div>
     </div>
   );

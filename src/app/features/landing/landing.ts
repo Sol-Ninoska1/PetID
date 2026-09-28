@@ -53,6 +53,9 @@ export class Landing implements OnInit {
     'Completa sus datos: nombre, especie, raza, edad y más.',
     'Agrega su información de salud y un contacto de emergencia.',
     'Toca "Activar mi PetID" y listo.',
+    'En iPhone, agrégala a tu inicio desde Safari (Compartir → Agregar a inicio).',
+    'En Android, desde Chrome: menú ⋮ → Agregar a la pantalla principal (o Instalar app).',
+    'Ábrela desde el ícono, toca "Activar avisos" y luego Permitir.',
   ];
 
   protected readonly priceIncludes = [
