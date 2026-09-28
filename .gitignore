@@ -50,3 +50,6 @@ supabase/.branches
 # System files
 .DS_Store
 Thumbs.db
+
+# Supabase backups (npm run backup)
+backups/

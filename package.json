@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "seed": "node --env-file=.env scripts/seed.mjs"
+    "seed": "node --env-file=.env scripts/seed.mjs",
+    "backup": "node --env-file=.env scripts/backup.mjs"
   },
   "private": true,
   "packageManager": "npm@10.8.2",
