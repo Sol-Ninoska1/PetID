@@ -25,6 +25,8 @@ export class Dashboard implements OnInit {
 
   /** Query param set right after activating a PetID. */
   readonly activated = input<string>();
+  /** Query param from the landing's "Activar mi PetID" button: opens the activation box. */
+  readonly activar = input<string>();
 
   protected readonly telHref = telHref;
   protected readonly whatsappHref = whatsappHref;
@@ -44,6 +46,7 @@ export class Dashboard implements OnInit {
   protected readonly activatedPet = computed(() => this.pets().find((p) => p.id === this.activated()) ?? null);
 
   async ngOnInit() {
+    if (this.activar()) this.showActivate.set(true);
     try {
       const [pets, alerts] = await Promise.all([this.petsRepo.listMine(), this.activityRepo.listUnreadAlerts()]);
       this.pets.set(pets);

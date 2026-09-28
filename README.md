@@ -52,6 +52,7 @@ Las claves VAPID y el secreto están en `supabase/functions/.env` y los secretos
    5. `supabase/migrations/20260927000200_role_cliente.sql`
    6. `supabase/migrations/20260927000300_products.sql`
    7. `supabase/migrations/20260928000000_pet_cover.sql`
+   8. `supabase/migrations/20260928000100_support_reviews.sql`
 
    Con Supabase CLI también sirve `supabase link` y luego `supabase db push`.
 3. **Configurar URLs de Auth.** En *Authentication → URL Configuration*, pon `http://localhost:4200` como *Site URL* y agrega `http://localhost:4200/**` en *Redirect URLs*.
@@ -93,6 +94,8 @@ Para probar el escaneo desde un teléfono en la misma red, usa `npx ng serve --h
 | Detalle PetID | QR, descargas PNG/SVG/PDF, imprimir, copiar URL, cambiar estado o bloquear, dueño y mascota vinculados |
 | Activaciones | PetIDs activadas con su dueño y mascota |
 | Mascotas / Usuarios / Reportes | Listados de solo lectura |
+| Soporte | Mensajes del formulario de contacto: responder por email, marcar resuelto o reabrir |
+| Reseñas | Calificaciones de clientes; ocultar o mostrar en la página principal |
 | Productos | Catálogo: nombre, tipo (collar/placa/tag), foto, precio CLP, variantes de color/talla con stock. Los activos se muestran en la página principal (sin carrito) |
 | Configuración | Reservada para próximas versiones |
 
@@ -114,12 +117,12 @@ src/app/
     public-pet/  /p/:qrToken, banner de perdida, contacto, "Encontré esta mascota"
     dashboard/   Mascotas del dueño, PetID, avisos
     pets/        pet-form (activación/edición), pet-qr, pet-activity
-    admin/       layout, sidebar, dashboard, pet-ids, activations, pets, users, reports
+    admin/       layout, sidebar, dashboard, pet-ids, activations, pets, users, reports, support, reviews
   layout/        Layout del área del dueño
   shared/        UI (icon, qr-card, badges), pipes, utilidades (qr-label: SVG/PNG/PDF/impresión)
 supabase/
   migrations/    Esquema, RLS, funciones y bucket de fotos
-  functions/     notify-owner (email opcional)
+  functions/     push-owner, notify-support (email a soporte), notify-owner (email opcional)
 scripts/seed.mjs Datos de prueba
 ```
 
@@ -132,6 +135,26 @@ scripts/seed.mjs Datos de prueba
 - **Qué ve el visitante:** nombre de pila del dueño; su teléfono solo si activó Llamar/WhatsApp; salud solo si lo permitió. Nunca email ni apellido.
 - **Privacidad del visitante:** la IP nunca se guarda; solo la ciudad o región estimada. El GPS se guarda redondeado (~1 km) en el escaneo y solo si la persona acepta compartirlo. El dueño ve fecha y tipo de dispositivo, no el user agent completo.
 - **Push:** `push-owner` solo acepta llamadas con el secreto compartido y vuelve a leer la fila desde la base de datos en vez de confiar en el payload.
+
+## Soporte y reseñas
+
+- **Contacto (`#soporte` en la landing).** Cualquiera puede escribir. Máximo 5 mensajes por email por hora. Cada mensaje se guarda en `support_messages` (visible en *Admin → Soporte*) y un trigger llama a la Edge Function `notify-support`, que lo envía por email a `SUPPORT_EMAIL` con *Responder a* apuntando al cliente.
+- **Reseñas (`#resenas`).** Estrellas de 1 a 5 y comentario opcional. Solo clientes con al menos una mascota registrada, una reseña por cuenta (se puede editar o borrar). Se publica el nombre de pila. El admin puede ocultarlas.
+
+Para activar el email de soporte (requiere cuenta en [Resend](https://resend.com)):
+
+1. Ejecuta la migración 8. Usa el mismo secreto `push_owner_secret` de Vault que las notificaciones push; crea la URL de la función en el *SQL Editor*:
+   ```sql
+   select vault.create_secret('https://TU-PROJECT-REF.supabase.co/functions/v1/notify-support', 'notify_support_url');
+   ```
+2. Despliega la función sin verificación JWT:
+   ```bash
+   npx supabase functions deploy notify-support --no-verify-jwt --project-ref TU-PROJECT-REF
+   npx supabase secrets set RESEND_API_KEY=... NOTIFY_FROM="PetID <onboarding@resend.dev>" SUPPORT_EMAIL=tu@correo.cl APP_URL=https://tudominio.cl --project-ref TU-PROJECT-REF
+   ```
+   `WEBHOOK_SECRET` ya existe si configuraste `push-owner`. Con el remitente de prueba `onboarding@resend.dev`, Resend solo entrega al email de tu cuenta Resend; para otros destinos verifica tu dominio.
+
+Sin la función, los mensajes igual quedan guardados en *Admin → Soporte*.
 
 ## Notificación por email (opcional)
 

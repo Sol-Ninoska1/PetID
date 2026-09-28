@@ -10,6 +10,8 @@ export const ADMIN_MENU: { label: string; path: string; icon: IconName; exact?: 
   { label: 'Mascotas', path: '/admin/pets', icon: 'paw' },
   { label: 'Usuarios', path: '/admin/users', icon: 'users' },
   { label: 'Reportes', path: '/admin/reports', icon: 'flag' },
+  { label: 'Soporte', path: '/admin/support', icon: 'help' },
+  { label: 'Reseñas', path: '/admin/reviews', icon: 'star' },
   { label: 'Configuración', path: '/admin/settings', icon: 'settings' },
 ];
 

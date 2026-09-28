@@ -3,16 +3,18 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { ProductsRepository } from '../../core/data/products.repository';
 import { CatalogProduct } from '../../core/models';
+import { SupportPreset, SupportSection } from './support-section';
 import { Icon, IconName } from '../../shared/ui/icon';
 import { Logo } from '../../shared/ui/logo';
 import { QrCode } from '../../shared/ui/qr-code';
 import { publicPetIdUrl } from '../../shared/utils/qr-label';
 import { CatalogSection } from './catalog-section';
+import { ReviewsSection } from './reviews-section';
 
 @Component({
   selector: 'app-landing',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Icon, Logo, QrCode, CatalogSection],
+  imports: [RouterLink, Icon, Logo, QrCode, CatalogSection, ReviewsSection, SupportSection],
   templateUrl: './landing.html',
 })
 export class Landing implements OnInit {
@@ -20,9 +22,21 @@ export class Landing implements OnInit {
   private readonly productsRepo = inject(ProductsRepository);
   protected readonly demoUrl = publicPetIdUrl('demo-max');
   protected readonly catalog = signal<CatalogProduct[]>([]);
+  protected readonly tutorialPlaying = signal(false);
+  protected readonly supportPreset = signal<SupportPreset | null>(null);
 
   async ngOnInit() {
     this.catalog.set(await this.productsRepo.catalog().catch(() => []));
+  }
+
+  protected playTutorial(video: HTMLVideoElement) {
+    this.tutorialPlaying.set(true);
+    video.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    void video.play();
+  }
+
+  protected requestPurchase() {
+    this.supportPreset.set({ topic: 'pedido', message: 'Hola, quiero comprar una placa PetID.' });
   }
 
   protected readonly steps = [
@@ -31,13 +45,25 @@ export class Landing implements OnInit {
     { icon: 'heart', title: 'Vuelve a casa', text: 'Quien la encuentre escanea el QR y te avisa en segundos.' },
   ] satisfies { icon: IconName; title: string; text: string }[];
 
-  protected readonly benefits = [
-    { icon: 'smartphone', title: 'Sin apps', text: 'Funciona con la cámara de cualquier teléfono.' },
-    { icon: 'bell', title: 'Aviso inmediato', text: 'Te llega el aviso con los datos de quien la encontró.' },
-    { icon: 'map-pin', title: 'Ubicación', text: 'Quien la encuentre puede enviarte su ubicación exacta.' },
+  protected readonly tutorialSteps = [
+    'Escanea el QR de tu placa con la cámara.',
+    'Crea tu cuenta con tu nombre, email y teléfono.',
+    'Sube su foto y ajusta el zoom.',
+    'Agrega una portada (opcional).',
+    'Completa sus datos: nombre, especie, raza, edad y más.',
+    'Agrega su información de salud y un contacto de emergencia.',
+    'Toca "Activar mi PetID" y listo.',
+  ];
+
+  protected readonly priceIncludes = [
+    { icon: 'qr', title: 'Placa con QR grabado', text: 'Sin batería ni apps: la lee cualquier cámara.' },
+    { icon: 'bell', title: 'Aviso inmediato', text: 'Te avisa apenas escanean su placa.' },
+    { icon: 'map-pin', title: 'Ubicación', text: 'Quien la encuentre te envía dónde está.' },
+    { icon: 'alert', title: 'Modo perdida', text: 'Una alerta visible en su perfil con un toque.' },
+    { icon: 'phone', title: 'Contacto de emergencia', text: 'Un segundo número por si no contestas.' },
     { icon: 'shield', title: 'Privacidad', text: 'Tu dirección y email nunca se muestran.' },
-    { icon: 'edit', title: 'Siempre actualizada', text: 'Cambia tus datos sin comprar otra placa.' },
-    { icon: 'alert', title: 'Modo perdida', text: 'Activa una alerta visible en su perfil con un toque.' },
+    { icon: 'edit', title: 'Siempre actualizada', text: 'Cambia sus datos sin comprar otra placa.' },
+    { icon: 'mail', title: 'Soporte incluido', text: 'Te ayudamos a activarla y usarla.' },
   ] satisfies { icon: IconName; title: string; text: string }[];
 
   protected readonly faqs = [
@@ -46,24 +72,16 @@ export class Landing implements OnInit {
       a: 'No. La placa no usa batería: funciona con un código QR que cualquier teléfono puede leer. Cuando alguien la escanea puede enviarte su ubicación.',
     },
     {
-      q: '¿Quien la encuentre necesita descargar algo?',
-      a: 'No. Solo apunta la cámara del teléfono al código y se abre el perfil de tu mascota en el navegador.',
-    },
-    {
       q: '¿Qué datos míos se ven?',
       a: 'Solo tu nombre de pila y botones para llamarte o escribirte por WhatsApp (puedes desactivarlos). Tu email, apellido y dirección nunca se muestran.',
     },
     {
-      q: '¿Cómo activo mi PetID?',
-      a: 'Escanea el QR de tu collar con la cámara del teléfono, crea tu cuenta y registra a tu mascota. Cada PetID se activa una sola vez y queda vinculada a tu cuenta.',
+      q: '¿Sirve para gatos y otras mascotas?',
+      a: 'Sí. Al registrarla eliges si es perro, gato u otra mascota, y su perfil muestra sus datos igual.',
     },
     {
-      q: '¿Qué pasa si cambio de teléfono o de casa?',
-      a: 'Actualizas tus datos desde tu cuenta y la placa sigue funcionando. El QR solo contiene un enlace, no tus datos.',
-    },
-    {
-      q: '¿Hay que pagar una suscripción?',
-      a: 'No. Pagas una vez por la placa y el perfil digital queda activo para siempre.',
+      q: '¿Puedo usar la misma placa con otra mascota?',
+      a: 'No. Cada PetID se activa una sola vez y queda vinculada a una mascota, así nadie más puede tomar su placa.',
     },
   ];
 }

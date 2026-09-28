@@ -91,6 +91,16 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/reports/admin-reports').then((m) => m.AdminReports),
       },
       {
+        path: 'support',
+        title: 'Soporte — Admin PetID',
+        loadComponent: () => import('./features/admin/support/admin-support').then((m) => m.AdminSupport),
+      },
+      {
+        path: 'reviews',
+        title: 'Reseñas — Admin PetID',
+        loadComponent: () => import('./features/admin/reviews/admin-reviews').then((m) => m.AdminReviews),
+      },
+      {
         path: 'products',
         title: 'Productos — Admin PetID',
         loadComponent: () => import('./features/admin/products/product-list').then((m) => m.ProductList),

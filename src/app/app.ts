@@ -1,3 +1,4 @@
+import { ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SupabaseService } from './core/supabase/supabase.service';
@@ -18,4 +19,9 @@ import { SupabaseService } from './core/supabase/supabase.service';
 })
 export class App {
   protected readonly configured = inject(SupabaseService).configured;
+
+  constructor() {
+    // The router's anchor scrolling ignores CSS scroll-margin; keep sections clear of the sticky header.
+    inject(ViewportScroller).setOffset([0, 72]);
+  }
 }
