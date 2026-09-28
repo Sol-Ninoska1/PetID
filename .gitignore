@@ -39,6 +39,14 @@ testem.log
 /typings
 __screenshots__/
 
+# Secrets
+.env
+*.local.sql
+
+# Supabase CLI local state
+supabase/.temp
+supabase/.branches
+
 # System files
 .DS_Store
 Thumbs.db

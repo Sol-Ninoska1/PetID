@@ -1,0 +1,230 @@
+@if (!activating()) {
+  <a routerLink="/dashboard" class="btn btn-ghost btn-sm -ml-3 mb-2">
+    <app-icon name="arrow-left" class="size-4" /> Mis mascotas
+  </a>
+
+  <h1 class="text-2xl font-bold tracking-tight">Editar mascota</h1>
+  <p class="mt-1 text-muted">Los cambios se reflejan al instante al escanear su PetID, sin fabricar otro collar.</p>
+}
+
+@if (loading()) {
+  <div class="card mt-6 h-96 animate-pulse bg-white/60"></div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]" novalidate>
+    <!-- Cover + photo (preview of the public profile header) -->
+    <div class="card h-fit overflow-hidden">
+      <label class="group relative block aspect-[5/2] cursor-pointer bg-gradient-to-br from-slate-200 to-slate-100">
+        @if (cover.preview()) {
+          <img [src]="cover.preview()" alt="Portada" class="size-full object-cover" />
+        } @else {
+          <span class="absolute inset-x-0 top-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500">
+            <app-icon name="camera" class="size-4" /> Agregar portada
+          </span>
+        }
+        <input id="pet-cover-input" type="file" accept="image/*" class="sr-only" (change)="onFileSelected('cover', $event)" />
+      </label>
+
+      <div class="px-5 pb-5">
+        <label class="relative z-10 mx-auto -mt-16 block size-32 cursor-pointer overflow-hidden rounded-full border-4 border-white bg-brand-50 shadow-lg ring-1 ring-brand-100">
+          @if (photo.preview()) {
+            <img [src]="photo.preview()" alt="Foto de la mascota" class="size-full object-cover" />
+          } @else {
+            <span class="grid size-full place-items-center text-center text-brand-700">
+              <span>
+                <app-icon name="camera" class="mx-auto size-7" />
+                <span class="mt-1 block text-xs font-semibold">Agregar foto</span>
+              </span>
+            </span>
+          }
+          <input id="pet-photo-input" type="file" accept="image/*" class="sr-only" (change)="onFileSelected('photo', $event)" />
+        </label>
+
+        <div class="mt-5 space-y-4">
+          @for (kind of photoKinds; track kind) {
+            @let s = slot(kind);
+            <div>
+              <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
+                {{ cropSettings[kind].label }}
+                @if (kind === 'cover') { <span class="font-normal normal-case">(opcional)</span> }
+              </p>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" class="btn btn-secondary btn-sm" [disabled]="!s.preview() || s.loading()" (click)="adjust(kind)">
+                  <app-icon name="edit" class="size-4" /> {{ s.loading() ? 'Cargando…' : 'Ajustar' }}
+                </button>
+                <label [for]="kind === 'photo' ? 'pet-photo-input' : 'pet-cover-input'" class="btn btn-secondary btn-sm cursor-pointer">
+                  <app-icon name="camera" class="size-4" /> {{ s.preview() ? 'Cambiar' : 'Agregar' }}
+                </label>
+              </div>
+              @if (kind === 'cover' && s.preview()) {
+                <button type="button" class="btn btn-ghost btn-sm mt-1 w-full" (click)="s.clear()">Quitar portada</button>
+              }
+            </div>
+          }
+        </div>
+        <p class="mt-4 text-xs text-muted">Una foto clara de su cara ayuda a identificarla rápido. La portada es un toque personal.</p>
+      </div>
+    </div>
+
+    @if (cropping(); as kind) {
+      @if (slot(kind).source(); as file) {
+        <app-image-cropper [file]="file" [aspect]="cropSettings[kind].aspect" [outputWidth]="cropSettings[kind].outputWidth"
+          [heading]="cropSettings[kind].heading" [hint]="cropSettings[kind].hint"
+          (cropped)="onCropped(kind, $event)" (cancelled)="cropping.set(null)" />
+      }
+    }
+
+    <div class="space-y-6">
+      <!-- Basic info -->
+      <fieldset class="card space-y-4 p-5">
+        <legend class="sr-only">Información básica</legend>
+        <div>
+          <label class="field-label" for="name">Nombre *</label>
+          <input id="name" class="field-input" formControlName="name" placeholder="Ej: Max" />
+          @if (showError(form.controls.name)) {
+            <p class="field-error">Ingresa el nombre de tu mascota.</p>
+          }
+        </div>
+
+        <div>
+          <span class="field-label">Especie *</span>
+          <div class="grid grid-cols-3 gap-2" role="radiogroup">
+            @for (s of species; track s) {
+              <label class="flex cursor-pointer flex-col items-center gap-1 rounded-xl py-3 text-sm font-semibold ring-1 transition"
+                [class]="form.controls.species.value === s ? 'bg-brand-50 text-brand-800 ring-2 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50'">
+                <input type="radio" class="sr-only" formControlName="species" [value]="s" />
+                <span class="text-2xl">{{ speciesEmoji[s] }}</span>
+                {{ speciesLabels[s] }}
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class="field-label" for="breed">Raza</label>
+            <input id="breed" class="field-input" formControlName="breed" placeholder="Ej: Labrador" />
+          </div>
+          <div>
+            <label class="field-label" for="sex">Sexo</label>
+            <select id="sex" class="field-input" formControlName="sex">
+              @for (s of sexes; track s) {
+                <option [value]="s">{{ sexLabels[s] }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="birthDate">Fecha de nacimiento</label>
+            <input id="birthDate" type="date" class="field-input" formControlName="birthDate" [max]="today" />
+            @if (showError(form.controls.birthDate, 'future')) {
+              <p class="field-error">La fecha no puede ser futura.</p>
+            }
+          </div>
+          <div>
+            <label class="field-label" for="color">Color</label>
+            <input id="color" class="field-input" formControlName="color" placeholder="Ej: Dorado" />
+          </div>
+          <div>
+            <label class="field-label" for="weight">Peso (kg)</label>
+            <input id="weight" type="number" step="0.1" min="0.1" inputmode="decimal" class="field-input" formControlName="weight" placeholder="Ej: 28" />
+            @if (showError(form.controls.weight)) {
+              <p class="field-error">Ingresa un peso válido.</p>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label" for="description">Descripción</label>
+          <textarea id="description" rows="3" class="field-input" formControlName="description"
+            placeholder="Rasgos que ayuden a reconocerla, carácter, si es asustadiza…"></textarea>
+        </div>
+      </fieldset>
+
+      <!-- Health -->
+      <fieldset class="card space-y-4 p-5">
+        <legend class="text-base font-bold">Salud e información importante</legend>
+        <div>
+          <label class="field-label" for="allergies">Alergias</label>
+          <input id="allergies" class="field-input" formControlName="allergies" placeholder="Ej: Pollo" />
+        </div>
+        <div>
+          <label class="field-label" for="medications">Medicamentos</label>
+          <input id="medications" class="field-input" formControlName="medications" placeholder="Ej: Antiinflamatorio cada 12 horas" />
+        </div>
+        <div>
+          <label class="field-label" for="specialNeeds">Necesidades especiales</label>
+          <input id="specialNeeds" class="field-input" formControlName="specialNeeds" placeholder="Ej: Es sorda, se acerca con comida" />
+        </div>
+      </fieldset>
+
+      <!-- Emergency contact -->
+      <fieldset class="card space-y-4 p-5">
+        <legend class="text-base font-bold">Contacto de emergencia</legend>
+        <p class="-mt-2 text-sm text-muted">Alguien de confianza por si no te pueden ubicar. Solo tú lo ves.</p>
+        <div class="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label class="field-label" for="contactName">Nombre *</label>
+            <input id="contactName" class="field-input" formControlName="contactName" autocomplete="off" />
+            @if (showError(form.controls.contactName)) {
+              <p class="field-error">Ingresa el nombre del contacto.</p>
+            }
+          </div>
+          <div>
+            <label class="field-label" for="contactPhone">Teléfono *</label>
+            <input id="contactPhone" type="tel" inputmode="tel" class="field-input" formControlName="contactPhone" placeholder="+56 9…" />
+            @if (showError(form.controls.contactPhone)) {
+              <p class="field-error">
+                {{ form.controls.contactPhone.hasError('required') ? 'Ingresa un teléfono.' : 'Teléfono no válido.' }}
+              </p>
+            }
+          </div>
+          <div>
+            <label class="field-label" for="contactRelationship">Relación <span class="font-normal text-muted">(opcional)</span></label>
+            <input id="contactRelationship" class="field-input" formControlName="contactRelationship" placeholder="Ej: Hermana" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Privacy -->
+      <fieldset class="card space-y-3 p-5">
+        <legend class="flex items-center gap-2 text-base font-bold">
+          <app-icon name="shield" class="size-5 text-brand-600" /> Qué se muestra al escanear el QR
+        </legend>
+        <label class="flex items-start gap-3">
+          <input type="checkbox" formControlName="showContactPhone" class="mt-1 size-4 accent-brand-600" />
+          <span><span class="font-medium">Botones Llamar y WhatsApp</span><br />
+            <span class="text-sm text-muted">Usan el teléfono de tu cuenta. Si lo desactivas, solo podrán avisarte con el formulario.</span></span>
+        </label>
+        <label class="flex items-start gap-3">
+          <input type="checkbox" formControlName="showHealthInfo" class="mt-1 size-4 accent-brand-600" />
+          <span><span class="font-medium">Alergias, medicamentos y necesidades especiales</span><br />
+            <span class="text-sm text-muted">Útil para que quien la encuentre la cuide bien.</span></span>
+        </label>
+        @if (id()) {
+          <label class="flex items-start gap-3">
+            <input type="checkbox" formControlName="isActive" class="mt-1 size-4 accent-brand-600" />
+            <span><span class="font-medium">Perfil público visible</span><br />
+              <span class="text-sm text-muted">Si lo pausas, al escanear el QR se mostrará que el perfil está en pausa.</span></span>
+          </label>
+        }
+        <p class="pt-1 text-xs text-muted">Tu email, apellido y dirección nunca se muestran públicamente.</p>
+      </fieldset>
+
+      @if (error()) {
+        <p class="alert-error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+        @if (id()) {
+          <button type="button" class="btn btn-ghost text-red-600 hover:bg-red-50 hover:text-red-700" [disabled]="saving()" (click)="remove()">
+            <app-icon name="trash" class="size-4" /> Eliminar mascota
+          </button>
+        } @else {
+          <span></span>
+        }
+        <button type="submit" class="btn btn-primary sm:min-w-48" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : activating() ? 'Activar mi PetID' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </div>
+  </form>
+}

@@ -1,0 +1,72 @@
+<app-auth-shell heading="Crea tu cuenta" [subheading]="activating() ? 'Paso 1 de 2 para activar tu PetID.' : 'Protege a tu mascota en menos de 2 minutos.'">
+  @if (needsConfirmation()) {
+    <div class="alert-success">
+      <p class="font-semibold">¡Casi listo! Revisa tu correo.</p>
+      <p class="mt-1">Te enviamos un enlace para confirmar tu cuenta. Después podrás registrar a tu mascota.</p>
+    </div>
+  } @else {
+    @if (activating()) {
+      <p class="alert-success mb-4">🐾 Después de crear tu cuenta registrarás a tu mascota y tu PetID quedará activa.</p>
+    }
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4" novalidate>
+      <div>
+        <label class="field-label" for="name">Nombre</label>
+        <input id="name" class="field-input" formControlName="name" autocomplete="name" placeholder="Tu nombre" />
+        @if (showError(form.controls.name)) {
+          <p class="field-error">Ingresa tu nombre.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="email">Email</label>
+        <input id="email" type="email" class="field-input" formControlName="email" autocomplete="email" inputmode="email" placeholder="tu@email.com" />
+        @if (showError(form.controls.email)) {
+          <p class="field-error">Ingresa un email válido.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="phone">Teléfono</label>
+        <input id="phone" type="tel" class="field-input" formControlName="phone" autocomplete="tel" inputmode="tel" placeholder="+56 9 1234 5678" />
+        @if (showError(form.controls.phone)) {
+          <p class="field-error">Ingresa un teléfono válido, idealmente con código de país.</p>
+        } @else {
+          <p class="mt-1 text-xs text-muted">Se usa para que puedan llamarte o escribirte por WhatsApp si encuentran a tu mascota.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="password">Contraseña</label>
+        <app-password-field>
+          <input id="password" type="password" class="field-input pr-11" formControlName="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" />
+        </app-password-field>
+        @if (showError(form.controls.password)) {
+          <p class="field-error">La contraseña debe tener al menos 8 caracteres.</p>
+        }
+      </div>
+
+      <div>
+        <label class="field-label" for="confirmPassword">Confirmar contraseña</label>
+        <app-password-field>
+          <input id="confirmPassword" type="password" class="field-input pr-11" formControlName="confirmPassword" autocomplete="new-password" />
+        </app-password-field>
+        @if (form.controls.confirmPassword.touched && form.hasError('mismatch')) {
+          <p class="field-error">Las contraseñas no coinciden.</p>
+        }
+      </div>
+
+      @if (error()) {
+        <p class="alert-error" role="alert">{{ error() }}</p>
+      }
+
+      <button type="submit" class="btn btn-primary w-full" [disabled]="loading()">
+        {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
+      </button>
+    </form>
+  }
+
+  <p footer class="mt-6 text-sm text-muted">
+    ¿Ya tienes cuenta?
+    <a routerLink="/login" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}" class="font-semibold text-brand-700 hover:underline">Inicia sesión</a>
+  </p>
+</app-auth-shell>

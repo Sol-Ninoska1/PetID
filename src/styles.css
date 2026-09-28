@@ -1,1 +1,131 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+
+  --color-brand-50: #effaf6;
+  --color-brand-100: #d8f3e8;
+  --color-brand-200: #b3e6d3;
+  --color-brand-300: #7fd2b6;
+  --color-brand-400: #4bb899;
+  --color-brand-500: #289d80;
+  --color-brand-600: #1a7e68;
+  --color-brand-700: #166555;
+  --color-brand-800: #155145;
+  --color-brand-900: #13433a;
+
+  --color-accent-400: #f7b955;
+  --color-accent-500: #f29d2a;
+
+  --color-coral-500: #ef6b5b;
+  --color-coral-400: #e05a4a;
+
+  --color-ink: #1c2733;
+  --color-muted: #64748b;
+  --color-surface: #f7f8f5;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-surface font-sans text-ink antialiased;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[15px] font-semibold transition select-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-ink ring-1 ring-slate-200 hover:bg-slate-50;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 text-white shadow-sm hover:bg-red-700;
+  }
+
+  .btn-ghost {
+    @apply text-muted hover:bg-slate-100 hover:text-ink;
+  }
+
+  .btn-sm {
+    @apply rounded-xl px-3 py-2 text-sm;
+  }
+
+  .card {
+    @apply rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5;
+  }
+
+  /* Browsers draw a <legend> over the fieldset's top edge; floating it keeps it inside the padding. */
+  fieldset.card > legend {
+    float: left;
+    width: 100%;
+  }
+
+  fieldset.card > legend + * {
+    clear: both;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+  }
+
+  .field-input {
+    @apply w-full rounded-xl border-0 bg-white px-4 py-3 text-[15px] text-ink ring-1 ring-slate-200 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500;
+  }
+
+  .field-input.ng-invalid.ng-touched {
+    @apply ring-red-400;
+  }
+
+  .field-error {
+    @apply mt-1 text-sm text-red-600;
+  }
+
+  .alert-error {
+    @apply rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-100;
+  }
+
+  .alert-success {
+    @apply rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800 ring-1 ring-brand-100;
+  }
+
+  .admin-table {
+    @apply w-full min-w-[640px] text-left text-sm;
+  }
+
+  .admin-table th {
+    @apply border-b border-slate-100 bg-slate-50/70 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted;
+  }
+
+  .admin-table td {
+    @apply border-b border-slate-100 px-4 py-3 align-middle;
+  }
+
+  .admin-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .admin-table tbody tr:hover {
+    @apply bg-slate-50/60;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold tracking-tight;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
