@@ -22,25 +22,27 @@ import { Icon } from './icon';
   imports: [Icon],
   template: `
     <div class="card p-5 sm:p-6">
-      <div class="mb-4 grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1 ring-1 ring-slate-200" role="radiogroup" aria-label="Formato del QR">
-        @for (f of formats; track f.value) {
-          <button type="button" role="radio" class="btn btn-sm" [attr.aria-checked]="format() === f.value"
-            [class]="format() === f.value ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'btn-ghost text-muted'" (click)="setFormat(f.value)">
-            {{ f.label }}
-          </button>
-        }
-      </div>
+      @if (admin()) {
+        <div class="mb-4 grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1 ring-1 ring-slate-200" role="radiogroup" aria-label="Formato del QR">
+          @for (f of formats; track f.value) {
+            <button type="button" role="radio" class="btn btn-sm" [attr.aria-checked]="format() === f.value"
+              [class]="format() === f.value ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'btn-ghost text-muted'" (click)="setFormat(f.value)">
+              {{ f.label }}
+            </button>
+          }
+        </div>
+      }
 
       <div class="mx-auto w-full rounded-2xl bg-white p-2 ring-1 ring-slate-200" [class]="format() === 'round' ? 'max-w-56' : 'max-w-64'">
         <img [src]="preview()" [alt]="'QR de ' + code()" class="block w-full" />
       </div>
-      @if (format() === 'round') {
+      @if (admin() && format() === 'round') {
         <p class="mt-3 text-center text-xs text-muted">
           Tamaño real: 30 mm de diámetro. El círculo gris es solo el borde de referencia y arriba queda libre para el agujero de la argolla.
         </p>
       }
 
-      @if (warnTemporaryUrl() && temporaryUrl) {
+      @if (admin() && temporaryUrl) {
         <p class="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs text-amber-900 ring-1 ring-amber-200">
           <strong>Ojo:</strong> este QR apunta a <code>{{ baseOrigin }}</code>. Antes de fabricar collares, define
           <code>publicBaseUrl</code> con tu dominio definitivo en <code>src/environments/environment.ts</code>.
@@ -77,8 +79,8 @@ import { Icon } from './icon';
 export class QrCard {
   readonly code = input.required<string>();
   readonly qrToken = input.required<string>();
-  /** Admin screens warn when QRs would encode a dev origin. */
-  readonly warnTemporaryUrl = input(false);
+  /** Admin screens pick the label format and warn when QRs would encode a dev origin; owners always get the round plate. */
+  readonly admin = input(false);
 
   protected readonly temporaryUrl = isTemporaryBaseUrl();
   protected readonly baseOrigin = location.origin;
@@ -87,7 +89,8 @@ export class QrCard {
   protected readonly popupBlocked = signal(false);
 
   protected readonly formats = LABEL_FORMATS;
-  protected readonly format = signal<LabelFormat>(savedLabelFormat());
+  private readonly selectedFormat = signal<LabelFormat>(savedLabelFormat());
+  protected readonly format = computed<LabelFormat>(() => (this.admin() ? this.selectedFormat() : 'round'));
 
   protected readonly url = computed(() => publicPetIdUrl(this.qrToken()));
   private readonly label = computed(() => ({ code: this.code(), url: this.url() }));
@@ -97,7 +100,7 @@ export class QrCard {
   );
 
   protected setFormat(format: LabelFormat) {
-    this.format.set(format);
+    this.selectedFormat.set(format);
     saveLabelFormat(format);
   }
 

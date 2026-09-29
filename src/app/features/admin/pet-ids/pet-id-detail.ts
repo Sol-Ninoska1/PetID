@@ -41,7 +41,7 @@ const ACTIONS: Record<PetIdStatus, { label: string; icon: IconName }> = {
 
       <div class="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
         <div>
-          <app-qr-card [code]="item.code" [qrToken]="item.qrToken" [warnTemporaryUrl]="true" />
+          <app-qr-card [code]="item.code" [qrToken]="item.qrToken" [admin]="true" />
         </div>
 
         <div class="space-y-6">
