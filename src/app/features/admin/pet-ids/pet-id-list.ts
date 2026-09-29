@@ -5,7 +5,14 @@ import { AdminRepository } from '../../../core/data/admin.repository';
 import { PET_ID_STATUS_LABELS, PET_ID_STATUSES, PetIdRecord, PetIdStatus, allowedPetIdTransitions } from '../../../core/models';
 import { Icon } from '../../../shared/ui/icon';
 import { PetIdStatusBadge } from '../../../shared/ui/pet-id-status-badge';
-import { printLabels, publicPetIdUrl } from '../../../shared/utils/qr-label';
+import {
+  LABEL_FORMATS,
+  LabelFormat,
+  printLabels,
+  publicPetIdUrl,
+  saveLabelFormat,
+  savedLabelFormat,
+} from '../../../shared/utils/qr-label';
 import { AdminTable } from '../ui/admin-table';
 import { GeneratePetIdsForm } from './generate-pet-ids-form';
 
@@ -31,9 +38,17 @@ import { GeneratePetIdsForm } from './generate-pet-ids-form';
     @if (justCreated().length > 1) {
       <div class="alert-success mt-6 flex flex-wrap items-center justify-between gap-3">
         <span><strong>Se generaron {{ justCreated().length }} PetIDs.</strong> Ya puedes imprimir sus QR para fabricar.</span>
-        <button type="button" class="btn btn-primary btn-sm" (click)="printIds(justCreated())">
-          <app-icon name="printer" class="size-4" /> Imprimir las {{ justCreated().length }}
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <select class="field-input w-auto py-1.5 text-sm" aria-label="Formato del QR" [value]="format()"
+            (change)="setFormat($any($event.target).value)">
+            @for (f of formats; track f.value) {
+              <option [value]="f.value">{{ f.label }}</option>
+            }
+          </select>
+          <button type="button" class="btn btn-primary btn-sm" (click)="printIds(justCreated())">
+            <app-icon name="printer" class="size-4" /> Imprimir las {{ justCreated().length }}
+          </button>
+        </div>
       </div>
     }
 
@@ -61,6 +76,12 @@ import { GeneratePetIdsForm } from './generate-pet-ids-form';
       @if (selected().size) {
         <div toolbar class="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-brand-50/60 px-4 py-2 text-sm">
           <span class="font-semibold">{{ selected().size }} seleccionadas</span>
+          <select class="field-input w-auto py-1.5 text-sm" aria-label="Formato del QR" [value]="format()"
+            (change)="setFormat($any($event.target).value)">
+            @for (f of formats; track f.value) {
+              <option [value]="f.value">{{ f.label }}</option>
+            }
+          </select>
           <button type="button" class="btn btn-secondary btn-sm" (click)="printIds([...selected()])">
             <app-icon name="printer" class="size-4" /> Imprimir QR
           </button>
@@ -127,6 +148,8 @@ export class PetIdList {
 
   protected readonly limit = 300;
   protected readonly statuses = PET_ID_STATUSES;
+  protected readonly formats = LABEL_FORMATS;
+  protected readonly format = signal<LabelFormat>(savedLabelFormat());
   protected readonly statusLabels = PET_ID_STATUS_LABELS;
   protected readonly items = signal<PetIdRecord[]>([]);
   protected readonly loading = signal(true);
@@ -206,12 +229,20 @@ export class PetIdList {
     this.selected.set(this.allSelected() ? new Set() : new Set(this.items().map((i) => i.id)));
   }
 
+  protected setFormat(format: LabelFormat) {
+    this.format.set(format);
+    saveLabelFormat(format);
+  }
+
   async printIds(ids: string[]) {
     const known = new Map(this.items().map((i) => [i.id, i]));
     const missing = ids.filter((id) => !known.has(id));
     const records = [...ids.filter((id) => known.has(id)).map((id) => known.get(id)!), ...(missing.length ? await this.repo.getPetIds(missing) : [])];
     records.sort((a, b) => a.code.localeCompare(b.code));
-    const opened = printLabels(records.map((r) => ({ code: r.code, url: publicPetIdUrl(r.qrToken) })));
+    const opened = printLabels(
+      records.map((r) => ({ code: r.code, url: publicPetIdUrl(r.qrToken) })),
+      this.format(),
+    );
     this.actionError.set(opened ? null : 'Permite las ventanas emergentes para imprimir.');
   }
 

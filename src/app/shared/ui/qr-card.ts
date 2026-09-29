@@ -2,25 +2,43 @@ import { ChangeDetectionStrategy, Component, computed, input, signal } from '@an
 import {
   downloadBlob,
   isTemporaryBaseUrl,
+  LABEL_FORMATS,
+  LabelFormat,
   labelPdf,
   labelPng,
   labelSvg,
   printLabels,
   publicPetIdUrl,
+  saveLabelFormat,
+  savedLabelFormat,
   svgDataUrl,
 } from '../utils/qr-label';
 import { Icon } from './icon';
 
-/** Printable PetID label (brand + QR + code) with copy, PNG/SVG/PDF downloads and print. */
+/** Printable PetID label (30 mm round plate or rectangular tag) with copy, PNG/SVG/PDF downloads and print. */
 @Component({
   selector: 'app-qr-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Icon],
   template: `
     <div class="card p-5 sm:p-6">
-      <div class="mx-auto w-full max-w-64 rounded-2xl bg-white p-2 ring-1 ring-slate-200">
+      <div class="mb-4 grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1 ring-1 ring-slate-200" role="radiogroup" aria-label="Formato del QR">
+        @for (f of formats; track f.value) {
+          <button type="button" role="radio" class="btn btn-sm" [attr.aria-checked]="format() === f.value"
+            [class]="format() === f.value ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'btn-ghost text-muted'" (click)="setFormat(f.value)">
+            {{ f.label }}
+          </button>
+        }
+      </div>
+
+      <div class="mx-auto w-full rounded-2xl bg-white p-2 ring-1 ring-slate-200" [class]="format() === 'round' ? 'max-w-56' : 'max-w-64'">
         <img [src]="preview()" [alt]="'QR de ' + code()" class="block w-full" />
       </div>
+      @if (format() === 'round') {
+        <p class="mt-3 text-center text-xs text-muted">
+          Tamaño real: 30 mm de diámetro. El círculo gris es solo el borde de referencia y arriba queda libre para el agujero de la argolla.
+        </p>
+      }
 
       @if (warnTemporaryUrl() && temporaryUrl) {
         <p class="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs text-amber-900 ring-1 ring-amber-200">
@@ -68,10 +86,20 @@ export class QrCard {
   protected readonly busy = signal(false);
   protected readonly popupBlocked = signal(false);
 
+  protected readonly formats = LABEL_FORMATS;
+  protected readonly format = signal<LabelFormat>(savedLabelFormat());
+
   protected readonly url = computed(() => publicPetIdUrl(this.qrToken()));
   private readonly label = computed(() => ({ code: this.code(), url: this.url() }));
-  protected readonly preview = computed(() => svgDataUrl(labelSvg(this.label())));
-  private readonly filename = computed(() => `petid-${this.code().toLowerCase()}`);
+  protected readonly preview = computed(() => svgDataUrl(labelSvg(this.label(), this.format())));
+  private readonly filename = computed(
+    () => `petid-${this.code().toLowerCase()}${this.format() === 'round' ? '-placa-30mm' : ''}`,
+  );
+
+  protected setFormat(format: LabelFormat) {
+    this.format.set(format);
+    saveLabelFormat(format);
+  }
 
   async copy() {
     await navigator.clipboard.writeText(this.url());
@@ -82,21 +110,21 @@ export class QrCard {
   async downloadPng() {
     this.busy.set(true);
     try {
-      downloadBlob(await labelPng(this.label()), `${this.filename()}.png`);
+      downloadBlob(await labelPng(this.label(), this.format()), `${this.filename()}.png`);
     } finally {
       this.busy.set(false);
     }
   }
 
   downloadSvg() {
-    downloadBlob(new Blob([labelSvg(this.label())], { type: 'image/svg+xml' }), `${this.filename()}.svg`);
+    downloadBlob(new Blob([labelSvg(this.label(), this.format())], { type: 'image/svg+xml' }), `${this.filename()}.svg`);
   }
 
   downloadPdf() {
-    downloadBlob(labelPdf(this.label()), `${this.filename()}.pdf`);
+    downloadBlob(labelPdf(this.label(), this.format()), `${this.filename()}.pdf`);
   }
 
   print() {
-    this.popupBlocked.set(!printLabels([this.label()]));
+    this.popupBlocked.set(!printLabels([this.label()], this.format()));
   }
 }

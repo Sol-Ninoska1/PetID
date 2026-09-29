@@ -58,6 +58,11 @@ describe('shared utils', () => {
     expect(svg.startsWith('<svg')).toBe(true);
     expect(svg).toContain('width="40mm"');
     expect(svg).toContain('PET-&lt;1&gt;');
+
+    const round = labelSvg(label, 'round');
+    expect(round).toContain('width="30mm"');
+    expect(round).toContain('<circle');
+    expect(round).not.toContain('PET-00001');
   });
 
   it('generates a valid single-page PDF label', async () => {
