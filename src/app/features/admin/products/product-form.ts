@@ -3,6 +3,7 @@ import { FormArray, NonNullableFormBuilder, ReactiveFormsModule, Validators } fr
 import { Router, RouterLink } from '@angular/router';
 import { ProductsRepository } from '../../../core/data/products.repository';
 import { PRODUCT_TYPE_LABELS, PRODUCT_TYPES, ProductType } from '../../../core/models';
+import { ConfirmService } from '../../../shared/ui/confirm-dialog';
 import { Icon } from '../../../shared/ui/icon';
 import { ImageCropper } from '../../../shared/ui/image-cropper';
 import { formatClp } from '../../../shared/utils/money';
@@ -155,6 +156,7 @@ export class ProductForm implements OnInit, OnDestroy {
   private readonly repo = inject(ProductsRepository);
   private readonly router = inject(Router);
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly confirmDialog = inject(ConfirmService);
 
   /** Route param; absent on /admin/products/new. */
   readonly id = input<string>();
@@ -322,7 +324,17 @@ export class ProductForm implements OnInit, OnDestroy {
 
   async remove() {
     const id = this.id();
-    if (!id || !confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return;
+    if (
+      !id ||
+      !(await this.confirmDialog.ask({
+        title: '¿Eliminar este producto?',
+        message: 'Esta acción no se puede deshacer.',
+        confirmText: 'Eliminar',
+        icon: 'trash',
+        danger: true,
+      }))
+    )
+      return;
     this.saving.set(true);
     try {
       await this.repo.remove(id);

@@ -10,6 +10,7 @@ import {
   allowedPetIdTransitions,
   isPlanExpired,
 } from '../../../core/models';
+import { ConfirmService } from '../../../shared/ui/confirm-dialog';
 import { Icon, IconName } from '../../../shared/ui/icon';
 import { PetIdStatusBadge } from '../../../shared/ui/pet-id-status-badge';
 import { QrCard } from '../../../shared/ui/qr-card';
@@ -162,6 +163,7 @@ const ACTIONS: Record<PetIdStatus, { label: string; icon: IconName }> = {
 })
 export class PetIdDetail implements OnInit {
   private readonly repo = inject(AdminRepository);
+  private readonly confirmDialog = inject(ConfirmService);
 
   readonly id = input.required<string>();
   /** Query param set right after generating a single PetID. */
@@ -191,7 +193,17 @@ export class PetIdDetail implements OnInit {
 
   async setStatus(status: PetIdStatus) {
     const item = this.item()!;
-    if (status === 'blocked' && !confirm(`¿Bloquear ${item.code}? Su QR dejará de mostrar el perfil y no podrá activarse.`)) return;
+    if (
+      status === 'blocked' &&
+      !(await this.confirmDialog.ask({
+        title: `¿Bloquear ${item.code}?`,
+        message: 'Su QR dejará de mostrar el perfil y no podrá activarse.',
+        confirmText: 'Bloquear',
+        icon: 'lock',
+        danger: true,
+      }))
+    )
+      return;
     this.busy.set(true);
     this.actionError.set(null);
     try {
@@ -206,7 +218,13 @@ export class PetIdDetail implements OnInit {
 
   async renew() {
     const item = this.item()!;
-    if (!confirm(`¿Renovar ${item.code} por 1 año? Hazlo solo después de recibir el pago.`)) return;
+    const ok = await this.confirmDialog.ask({
+      title: `¿Renovar ${item.code} por 1 año?`,
+      message: 'Hazlo solo después de recibir el pago.',
+      confirmText: 'Renovar',
+      icon: 'sparkles',
+    });
+    if (!ok) return;
     this.busy.set(true);
     this.actionError.set(null);
     this.renewed.set(false);

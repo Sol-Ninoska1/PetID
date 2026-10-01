@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { FeedbackRepository } from '../../core/data/feedback.repository';
 import { OwnReview, ReviewSummary } from '../../core/models';
+import { ConfirmService } from '../../shared/ui/confirm-dialog';
 import { Icon } from '../../shared/ui/icon';
 import { StarRating } from '../../shared/ui/star-rating';
 
@@ -166,6 +167,7 @@ type WriteState = 'loading' | 'guest' | 'no_pet' | 'ready';
 export class ReviewsSection {
   private readonly repo = inject(FeedbackRepository);
   private readonly auth = inject(AuthService);
+  private readonly confirmDialog = inject(ConfirmService);
 
   protected readonly commentMax = COMMENT_MAX;
   protected readonly page = PAGE;
@@ -221,7 +223,7 @@ export class ReviewsSection {
 
   protected async remove() {
     const mine = this.mine();
-    if (!mine || !confirm('¿Borrar tu reseña?')) return;
+    if (!mine || !(await this.confirmDialog.ask({ title: '¿Borrar tu reseña?', confirmText: 'Borrar', icon: 'trash', danger: true }))) return;
     this.saving.set(true);
     try {
       await this.repo.deleteMyReview(mine.id);

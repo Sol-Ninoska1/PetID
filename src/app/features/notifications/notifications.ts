@@ -7,6 +7,7 @@ import { ActivityRepository } from '../../core/data/activity.repository';
 import { OwnerNotification } from '../../core/models';
 import { NotificationsService } from '../../core/notifications/notifications.service';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
+import { ConfirmService } from '../../shared/ui/confirm-dialog';
 import { Icon } from '../../shared/ui/icon';
 import { mapsHref, telHref, whatsappHref } from '../../shared/utils/contact';
 import { deviceLabel } from '../../shared/utils/pet';
@@ -161,6 +162,7 @@ function dayLabel(date: Date): string {
 export class Notifications implements OnInit {
   private readonly repo = inject(ActivityRepository);
   private readonly notifications = inject(NotificationsService);
+  private readonly confirmDialog = inject(ConfirmService);
 
   protected readonly telHref = telHref;
   protected readonly whatsappHref = whatsappHref;
@@ -213,7 +215,14 @@ export class Notifications implements OnInit {
   }
 
   async clear() {
-    if (!confirm('¿Limpiar el historial de avisos? La actividad de cada mascota se mantiene.')) return;
+    const ok = await this.confirmDialog.ask({
+      title: '¿Limpiar el historial?',
+      message: 'Se borran los avisos de esta lista. La actividad de cada mascota se mantiene.',
+      confirmText: 'Limpiar',
+      icon: 'trash',
+      danger: true,
+    });
+    if (!ok) return;
     this.busy.set(true);
     this.error.set(null);
     try {

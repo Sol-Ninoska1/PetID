@@ -13,6 +13,7 @@ import {
   SPECIES_EMOJI,
   SPECIES_LABELS,
 } from '../../../core/models';
+import { ConfirmService } from '../../../shared/ui/confirm-dialog';
 import { Icon } from '../../../shared/ui/icon';
 import { ImageCropper } from '../../../shared/ui/image-cropper';
 import { PHONE_PATTERN } from '../../../shared/utils/contact';
@@ -52,6 +53,7 @@ export class PetForm implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly petsRepo = inject(PetsRepository);
   private readonly router = inject(Router);
+  private readonly confirmDialog = inject(ConfirmService);
 
   /** Route param: present when editing. */
   readonly id = input<string>();
@@ -224,7 +226,13 @@ export class PetForm implements OnInit, OnDestroy {
     const id = this.id();
     if (
       !id ||
-      !confirm('¿Eliminar esta mascota? Se borrará su historial y su PetID quedará libre: al escanearla se pedirá activarla de nuevo.')
+      !(await this.confirmDialog.ask({
+        title: '¿Eliminar esta mascota?',
+        message: 'Se borrará su historial y su PetID quedará libre: al escanearla se pedirá activarla de nuevo.',
+        confirmText: 'Eliminar',
+        icon: 'trash',
+        danger: true,
+      }))
     )
       return;
     this.saving.set(true);

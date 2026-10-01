@@ -2,11 +2,12 @@ import { ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SupabaseService } from './core/supabase/supabase.service';
+import { ConfirmDialog } from './shared/ui/confirm-dialog';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ConfirmDialog],
   template: `
     @if (!configured) {
       <div class="no-print bg-amber-100 px-4 py-2 text-center text-sm text-amber-900">
@@ -15,6 +16,7 @@ import { SupabaseService } from './core/supabase/supabase.service';
       </div>
     }
     <router-outlet />
+    <app-confirm-dialog />
   `,
 })
 export class App {
