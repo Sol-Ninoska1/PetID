@@ -95,7 +95,7 @@ import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
           }
         }
 
-        <div class="mt-4 grid grid-cols-2 gap-2">
+        <div class="mt-4 grid grid-cols-2 gap-2" [class]="wide() ? 'sm:grid-cols-3' : ''">
           @if (pet.petId; as petId) {
             <a [routerLink]="['/p', petId.qrToken]" target="_blank" class="btn btn-secondary btn-sm">
               <app-icon name="eye" class="size-4" /> Ver perfil
@@ -110,6 +110,13 @@ import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
               <app-icon name="edit" class="size-4" /> Editar
             </a>
           }
+          <button type="button" class="btn btn-sm col-span-2"
+            [class]="(pet.isLost ? 'btn-primary' : 'btn-danger') + (wide() ? ' sm:col-span-1' : '')"
+            [disabled]="busy() || !pet.isActive"
+            (click)="toggleLost.emit()">
+            <app-icon [name]="pet.isLost ? 'check' : 'alert'" class="size-4" />
+            {{ pet.isLost ? 'Ya la encontré' : 'Marcar como perdida' }}
+          </button>
         </div>
         @if (plan(); as plan) {
           @if (!plan.expired && plan.daysLeft <= renewalNoticeDays) {
@@ -118,14 +125,6 @@ import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
             </a>
           }
         }
-
-        <button type="button" class="btn btn-sm mt-2 w-full"
-          [class]="pet.isLost ? 'btn-primary' : 'btn-danger'"
-          [disabled]="busy() || !pet.isActive"
-          (click)="toggleLost.emit()">
-          <app-icon [name]="pet.isLost ? 'check' : 'alert'" class="size-4" />
-          {{ pet.isLost ? 'Ya la encontré' : 'Marcar como perdida' }}
-        </button>
 
         <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-sm">
           <a [routerLink]="['/pets', pet.id, 'qr']" class="inline-flex items-center gap-1.5 font-semibold text-brand-700 hover:underline">
