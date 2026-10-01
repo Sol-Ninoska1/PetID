@@ -32,7 +32,7 @@ import { QrCard } from '../../../shared/ui/qr-card';
             <app-pet-id-status-badge [status]="petId.status" />
           </div>
 
-          <app-qr-card class="mt-4 block" [code]="petId.code" [qrToken]="petId.qrToken" />
+          <app-qr-card class="mt-4 block" [code]="petId.code" [qrToken]="petId.qrToken" [petName]="pet.name" />
 
           <a [routerLink]="['/p', petId.qrToken]" target="_blank" class="btn btn-secondary mt-4 w-full">
             <app-icon name="eye" class="size-5" /> Ver perfil público

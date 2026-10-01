@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, linkedSignal, signal } from '@angular/core';
 import {
   downloadBlob,
   isTemporaryBaseUrl,
@@ -6,6 +6,7 @@ import {
   LabelFormat,
   labelPdf,
   labelPng,
+  LabelSide,
   labelSvg,
   printLabels,
   publicPetIdUrl,
@@ -33,13 +34,17 @@ import { Icon } from './icon';
         </div>
       }
 
-      <div class="mx-auto w-full rounded-2xl bg-white p-2 ring-1 ring-slate-200" [class]="format() === 'round' ? 'max-w-56' : 'max-w-64'">
+      <div class="mx-auto w-full" [class]="format() === 'round' ? 'max-w-56' : 'max-w-64 rounded-2xl bg-white p-2 ring-1 ring-slate-200'">
         <img [src]="preview()" [alt]="'QR de ' + code()" class="block w-full" />
       </div>
+
       @if (admin() && format() === 'round') {
-        <p class="mt-3 text-center text-xs text-muted">
-          Tamaño real: 30 mm de diámetro. El círculo gris es solo el borde de referencia y arriba queda libre para el agujero de la argolla.
-        </p>
+        <label class="mt-4 block">
+          <span class="field-label">Nombre en la placa</span>
+          <input class="field-input" maxlength="14" placeholder="Ej: Hachi (opcional)" [value]="name()"
+            (input)="name.set($any($event.target).value)" />
+        </label>
+        <p class="mt-1 text-xs text-muted">Tamaño real: 30 mm de diámetro. El borde del círculo es la línea de corte.</p>
       }
 
       @if (admin() && temporaryUrl) {
@@ -70,6 +75,25 @@ import { Icon } from './icon';
       <button type="button" class="btn btn-primary mt-2 w-full" (click)="print()">
         <app-icon name="printer" class="size-5" /> Imprimir QR
       </button>
+
+      @if (admin() && format() === 'round') {
+        <div class="mt-4 flex items-center gap-4 rounded-2xl bg-surface p-3 ring-1 ring-slate-200">
+          <img [src]="backPreview" alt="Parte de atrás de la placa" class="size-20 shrink-0" />
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold">Parte de atrás</p>
+            <p class="text-xs text-muted">Es igual para todas las placas.</p>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <button type="button" class="btn btn-secondary btn-sm" [disabled]="busy()" (click)="downloadPng('back')">PNG</button>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="downloadSvg('back')">SVG</button>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="downloadPdf('back')">PDF</button>
+              <button type="button" class="btn btn-ghost btn-sm" (click)="print('back')">
+                <app-icon name="printer" class="size-4" /> Imprimir
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       @if (popupBlocked()) {
         <p class="field-error text-center">Permite las ventanas emergentes para imprimir.</p>
       }
@@ -79,7 +103,9 @@ import { Icon } from './icon';
 export class QrCard {
   readonly code = input.required<string>();
   readonly qrToken = input.required<string>();
-  /** Admin screens pick the label format and warn when QRs would encode a dev origin; owners always get the round plate. */
+  /** Shown above the QR on the round plate; admins can type a different one before manufacturing. */
+  readonly petName = input<string | null>(null);
+  /** Admin screens pick the label format, edit the name, get the plate back and warn when QRs would encode a dev origin. */
   readonly admin = input(false);
 
   protected readonly temporaryUrl = isTemporaryBaseUrl();
@@ -91,13 +117,21 @@ export class QrCard {
   protected readonly formats = LABEL_FORMATS;
   private readonly selectedFormat = signal<LabelFormat>(savedLabelFormat());
   protected readonly format = computed<LabelFormat>(() => (this.admin() ? this.selectedFormat() : 'round'));
+  protected readonly name = linkedSignal(() => this.petName() ?? '');
 
   protected readonly url = computed(() => publicPetIdUrl(this.qrToken()));
-  private readonly label = computed(() => ({ code: this.code(), url: this.url() }));
+  private readonly label = computed(() => ({
+    code: this.code(),
+    url: this.url(),
+    name: this.admin() ? this.name() : this.petName(),
+  }));
   protected readonly preview = computed(() => svgDataUrl(labelSvg(this.label(), this.format())));
-  private readonly filename = computed(
-    () => `petid-${this.code().toLowerCase()}${this.format() === 'round' ? '-placa-30mm' : ''}`,
-  );
+  protected readonly backPreview = svgDataUrl(labelSvg({ code: '', url: '' }, 'round', 'back'));
+
+  private filename(side: LabelSide) {
+    if (this.format() === 'tag') return `petid-${this.code().toLowerCase()}`;
+    return side === 'back' ? 'petid-placa-30mm-atras' : `petid-${this.code().toLowerCase()}-placa-30mm`;
+  }
 
   protected setFormat(format: LabelFormat) {
     this.selectedFormat.set(format);
@@ -110,24 +144,25 @@ export class QrCard {
     setTimeout(() => this.copied.set(false), 2000);
   }
 
-  async downloadPng() {
+  async downloadPng(side: LabelSide = 'front') {
     this.busy.set(true);
     try {
-      downloadBlob(await labelPng(this.label(), this.format()), `${this.filename()}.png`);
+      downloadBlob(await labelPng(this.label(), this.format(), side), `${this.filename(side)}.png`);
     } finally {
       this.busy.set(false);
     }
   }
 
-  downloadSvg() {
-    downloadBlob(new Blob([labelSvg(this.label(), this.format())], { type: 'image/svg+xml' }), `${this.filename()}.svg`);
+  downloadSvg(side: LabelSide = 'front') {
+    const svg = labelSvg(this.label(), this.format(), side);
+    downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `${this.filename(side)}.svg`);
   }
 
-  downloadPdf() {
-    downloadBlob(labelPdf(this.label(), this.format()), `${this.filename()}.pdf`);
+  downloadPdf(side: LabelSide = 'front') {
+    downloadBlob(labelPdf(this.label(), this.format(), side), `${this.filename(side)}.pdf`);
   }
 
-  print() {
-    this.popupBlocked.set(!printLabels([this.label()], this.format()));
+  print(side: LabelSide = 'front') {
+    this.popupBlocked.set(!printLabels([this.label()], this.format(), side));
   }
 }

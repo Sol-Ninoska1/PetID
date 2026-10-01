@@ -240,7 +240,7 @@ export class PetIdList {
     const records = [...ids.filter((id) => known.has(id)).map((id) => known.get(id)!), ...(missing.length ? await this.repo.getPetIds(missing) : [])];
     records.sort((a, b) => a.code.localeCompare(b.code));
     const opened = printLabels(
-      records.map((r) => ({ code: r.code, url: publicPetIdUrl(r.qrToken) })),
+      records.map((r) => ({ code: r.code, url: publicPetIdUrl(r.qrToken), name: r.pet?.name })),
       this.format(),
     );
     this.actionError.set(opened ? null : 'Permite las ventanas emergentes para imprimir.');

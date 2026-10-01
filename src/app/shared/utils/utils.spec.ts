@@ -59,10 +59,13 @@ describe('shared utils', () => {
     expect(svg).toContain('width="40mm"');
     expect(svg).toContain('PET-&lt;1&gt;');
 
-    const round = labelSvg(label, 'round');
+    const round = labelSvg({ ...label, name: 'Max & Co' }, 'round');
     expect(round).toContain('width="30mm"');
-    expect(round).toContain('<circle');
+    expect(round).toContain('Max &amp; Co');
+    expect(round).toContain('Escanéame');
     expect(round).not.toContain('PET-00001');
+
+    expect(labelSvg(label, 'round', 'back')).not.toContain('<text');
   });
 
   it('generates a valid single-page PDF label', async () => {
@@ -72,6 +75,11 @@ describe('shared utils', () => {
     expect(pdf.trimEnd().endsWith('%%EOF')).toBe(true);
     const xref = Number(pdf.match(/startxref\n(\d+)/)![1]);
     expect(pdf.slice(xref, xref + 4)).toBe('xref');
+
+    const round = new Uint8Array(await labelPdf({ code: 'PET-00001', url: 'https://petid.cl/p/demo-max', name: 'Ñandú' }, 'round').arrayBuffer());
+    const latin1 = String.fromCharCode(...round);
+    expect(latin1).toContain('(\xd1and\xfa) Tj');
+    expect(latin1).toContain('(Escan\xe9ame) Tj');
   });
 
   it('only allows PetID status changes the database accepts', () => {
