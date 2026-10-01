@@ -20,7 +20,8 @@ import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
   imports: [RouterLink, DatePipe, Icon, PetStatusBadge, RelativeTimePipe],
   template: `
     @if (pet(); as pet) {
-    <article class="card overflow-hidden" [class.ring-2]="pet.isLost" [class.ring-red-400]="pet.isLost" [class.ring-brand-400]="highlight() && !pet.isLost">
+    <article class="card overflow-hidden" [class]="wide() ? 'sm:grid sm:grid-cols-[minmax(0,320px)_1fr]' : ''"
+      [class.ring-2]="pet.isLost" [class.ring-red-400]="pet.isLost" [class.ring-brand-400]="highlight() && !pet.isLost">
       <!-- Mobile: compact row so the photo doesn't fill the whole screen -->
       <div class="flex gap-4 p-4 pb-0 sm:hidden">
         <div class="size-24 shrink-0 overflow-hidden rounded-2xl bg-brand-50 ring-1 ring-slate-900/5">
@@ -46,7 +47,7 @@ import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
         </div>
       </div>
 
-      <div class="relative hidden aspect-square bg-brand-50 sm:block">
+      <div class="relative hidden aspect-square bg-brand-50 sm:block" [class]="wide() ? 'sm:aspect-auto sm:min-h-80' : ''">
         @if (pet.photoUrl) {
           <img [src]="pet.photoUrl" [alt]="pet.name" class="size-full object-cover" loading="lazy" />
         } @else {
@@ -60,10 +61,10 @@ import { PetStatusBadge } from '../../shared/ui/pet-status-badge';
         }
       </div>
 
-      <div class="p-4">
+      <div class="p-4" [class]="wide() ? 'sm:p-6' : ''">
         <div class="hidden items-start justify-between gap-2 sm:flex">
           <div class="min-w-0">
-            <h3 class="truncate text-lg font-bold">{{ pet.name }}</h3>
+            <h3 class="truncate text-lg font-bold" [class]="wide() ? 'sm:text-2xl' : ''">{{ pet.name }}</h3>
             <p class="text-sm text-muted">{{ speciesLabels[pet.species] }}{{ pet.breed ? ' · ' + pet.breed : '' }}</p>
           </div>
           <a [routerLink]="['/pets', pet.id, 'activity']" class="flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200">
@@ -147,6 +148,8 @@ export class PetCard {
   readonly pet = input.required<PetWithStats>();
   readonly busy = input(false);
   readonly highlight = input(false);
+  /** Horizontal layout on larger screens, used when it's the owner's only pet. */
+  readonly wide = input(false);
   readonly toggleLost = output<void>();
   readonly toggleActive = output<void>();
 

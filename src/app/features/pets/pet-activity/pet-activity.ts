@@ -68,12 +68,14 @@ import { deviceLabel } from '../../../shared/utils/pet';
               <ul class="mt-3 divide-y divide-slate-100">
                 @for (r of reports(); track r.id) {
                   <li class="py-3 text-sm">
-                    <p class="font-medium">{{ r.reporterName }} · <span class="text-muted">{{ r.createdAt | relativeTime }}</span></p>
+                    <p class="font-medium">{{ r.reporterName || 'Alguien' }} · <span class="text-muted">{{ r.createdAt | relativeTime }}</span></p>
                     @if (r.message) {
                       <p class="mt-1">"{{ r.message }}"</p>
                     }
                     <div class="mt-2 flex flex-wrap gap-2">
-                      <a class="btn btn-secondary btn-sm" [href]="telHref(r.reporterPhone)"><app-icon name="phone" class="size-4" /> {{ r.reporterPhone }}</a>
+                      @if (r.reporterPhone; as phone) {
+                        <a class="btn btn-secondary btn-sm" [href]="telHref(phone)"><app-icon name="phone" class="size-4" /> {{ phone }}</a>
+                      }
                       @if (r.location.point; as p) {
                         <a class="btn btn-secondary btn-sm" target="_blank" rel="noopener" [href]="mapsHref(p.lat, p.lng)"><app-icon name="map-pin" class="size-4" /> Mapa</a>
                       }

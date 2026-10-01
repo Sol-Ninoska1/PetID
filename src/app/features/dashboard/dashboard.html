@@ -1,15 +1,26 @@
 <div class="flex flex-wrap items-end justify-between gap-4">
-  <div>
+  <div class="min-w-0">
     <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Hola{{ firstName() ? ', ' + firstName() : '' }} 🐾</h1>
     <p class="mt-1 text-muted">Tus mascotas protegidas con PetID.</p>
   </div>
   @if (pets().length) {
-    <button type="button" class="btn btn-secondary" (click)="showActivate.set(!showActivate())">
+    <button type="button" class="btn btn-primary hidden shadow-lg shadow-brand-900/15 sm:inline-flex" (click)="scanning.set(true)">
       <app-icon name="plus" class="size-5" />
       Activar otra PetID
     </button>
   }
 </div>
+
+@if (pets().length && !showActivate()) {
+  <button type="button" (click)="scanning.set(true)" aria-label="Activar otra PetID"
+    class="fixed right-5 bottom-[calc(1.25rem+env(safe-area-inset-bottom))] z-30 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-900/25 transition active:scale-95 sm:hidden">
+    <app-icon name="plus" class="size-7" />
+  </button>
+}
+
+@if (scanning()) {
+  <app-qr-scanner (scanned)="onScanned($event)" (closed)="scanning.set(false)" (paste)="pasteLink()" />
+}
 
 @if (activatedPet(); as pet) {
   <section class="card mt-6 overflow-hidden" aria-live="polite">
@@ -63,20 +74,39 @@
         <app-icon name="qr" class="size-6" />
       </span>
       <div class="min-w-0 flex-1">
-        <h2 id="activate-title" class="text-lg font-bold">
-          {{ pets().length ? 'Activar otra PetID' : 'Activa tu primera PetID' }}
-        </h2>
-        <p class="mt-1 text-sm text-muted">
-          Escanea el QR de tu collar o placa con la cámara del teléfono. Si ya tienes el enlace, pégalo aquí.
-        </p>
-        <form class="mt-4 flex flex-col gap-2 sm:flex-row" (submit)="goToActivation($event)">
-          <label class="sr-only" for="activate-link">Enlace de tu PetID</label>
-          <input id="activate-link" class="field-input flex-1" placeholder="https://…/p/XXXXXXXX"
-            [value]="activateInput()" (input)="activateInput.set($any($event.target).value); activateError.set(null)" />
-          <button type="submit" class="btn btn-primary">Continuar</button>
-        </form>
-        @if (activateError()) {
-          <p class="field-error">{{ activateError() }}</p>
+        <div class="flex items-start justify-between gap-2">
+          <h2 id="activate-title" class="text-lg font-bold">
+            {{ pets().length ? 'Activar otra PetID' : 'Activa tu primera PetID' }}
+          </h2>
+          @if (pets().length) {
+            <button type="button" class="-mr-2 -mt-1 grid size-8 shrink-0 place-items-center rounded-full text-muted hover:bg-slate-100"
+              aria-label="Cerrar" (click)="showActivate.set(false); showPaste.set(false)">
+              <app-icon name="x" class="size-4" />
+            </button>
+          }
+        </div>
+        @if (showPaste()) {
+          <p class="mt-1 text-sm text-muted">Pega el enlace que aparece al escanear el QR de tu collar.</p>
+          <form class="mt-4 flex flex-col gap-2 sm:flex-row" (submit)="goToActivation($event)">
+            <label class="sr-only" for="activate-link">Enlace de tu PetID</label>
+            <input id="activate-link" class="field-input flex-1" placeholder="https://…/p/XXXXXXXX"
+              [value]="activateInput()" (input)="activateInput.set($any($event.target).value); activateError.set(null)" />
+            <button type="submit" class="btn btn-primary">Continuar</button>
+          </form>
+          @if (activateError()) {
+            <p class="field-error">{{ activateError() }}</p>
+          }
+          <button type="button" class="mt-3 text-sm font-semibold text-brand-700" (click)="scanning.set(true)">
+            Mejor escanear el QR
+          </button>
+        } @else {
+          <p class="mt-1 text-sm text-muted">Escanea el QR de la placa de tu collar con la cámara.</p>
+          <button type="button" class="btn btn-primary mt-4 w-full sm:w-auto" (click)="scanning.set(true)">
+            <app-icon name="camera" class="size-5" /> Escanear QR
+          </button>
+          <button type="button" class="mt-3 block text-sm font-semibold text-brand-700" (click)="showPaste.set(true)">
+            ¿No puedes usar la cámara? Pega el enlace
+          </button>
         }
       </div>
     </div>
@@ -87,67 +117,13 @@
   <p class="alert-error mt-6" role="alert">{{ error() }}</p>
 }
 
-@if (alerts().length) {
-  <section class="mt-8" aria-labelledby="alerts-title">
-    <h2 id="alerts-title" class="mb-3 flex items-center gap-2 text-lg font-bold">
-      <app-icon name="bell" class="size-5 text-red-600" />
-      Avisos nuevos
-    </h2>
-    <div class="space-y-3">
-      @for (alert of alerts(); track alert.data.id) {
-        <article class="card border-l-4 border-red-500 p-4">
-          @switch (alert.kind) {
-            @case ('found_report') {
-              @let report = alert.data;
-              <p class="font-semibold">🚨 {{ report.reporterName }} encontró a {{ report.petName }}</p>
-              <p class="text-sm text-muted">{{ report.createdAt | relativeTime }}</p>
-              @if (report.message) {
-                <p class="mt-2 text-sm">"{{ report.message }}"</p>
-              }
-              @if (report.location.text) {
-                <p class="mt-1 text-sm text-muted">📍 {{ report.location.text }}</p>
-              }
-              <div class="mt-3 flex flex-wrap gap-2">
-                <a class="btn btn-primary btn-sm" [href]="telHref(report.reporterPhone)">
-                  <app-icon name="phone" class="size-4" /> Llamar
-                </a>
-                <a class="btn btn-secondary btn-sm" target="_blank" rel="noopener"
-                  [href]="whatsappHref(report.reporterPhone, 'Hola ' + report.reporterName + ', soy el dueño de ' + report.petName + '. ¡Gracias por avisarme!')">
-                  <app-icon name="message" class="size-4" /> WhatsApp
-                </a>
-                @if (report.location.point; as p) {
-                  <a class="btn btn-secondary btn-sm" target="_blank" rel="noopener" [href]="mapsHref(p.lat, p.lng)">
-                    <app-icon name="map-pin" class="size-4" /> Ver en mapa
-                  </a>
-                }
-                <button type="button" class="btn btn-ghost btn-sm" (click)="dismissAlert(alert)">Marcar como visto</button>
-              </div>
-            }
-            @case ('location_share') {
-              @let share = alert.data;
-              <p class="font-semibold">📍 Alguien compartió la ubicación de {{ share.petName }}</p>
-              <p class="text-sm text-muted">{{ share.createdAt | relativeTime }}</p>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <a class="btn btn-primary btn-sm" target="_blank" rel="noopener" [href]="mapsHref(share.point.lat, share.point.lng)">
-                  <app-icon name="map-pin" class="size-4" /> Ver en mapa
-                </a>
-                <button type="button" class="btn btn-ghost btn-sm" (click)="dismissAlert(alert)">Marcar como visto</button>
-              </div>
-            }
-          }
-        </article>
-      }
-    </div>
-  </section>
-}
-
 @if (!loading() && pets().length) {
   <div class="mt-6">
     <app-push-card />
   </div>
 }
 
-<section class="mt-8" aria-label="Mis mascotas">
+<section class="mt-8 pb-14 sm:pb-0" aria-label="Mis mascotas">
   @if (loading()) {
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       @for (i of [1, 2]; track i) {
@@ -155,9 +131,9 @@
       }
     </div>
   } @else if (pets().length) {
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-4" [class]="pets().length === 1 ? '' : 'sm:grid-cols-2 lg:grid-cols-3'">
       @for (pet of pets(); track pet.id) {
-        <app-pet-card [pet]="pet" [busy]="busyPetId() === pet.id" [highlight]="pet.id === activated()"
+        <app-pet-card [pet]="pet" [wide]="pets().length === 1" [busy]="busyPetId() === pet.id" [highlight]="pet.id === activated()"
           (toggleLost)="toggleLost(pet)" (toggleActive)="toggleActive(pet)" />
       }
     </div>

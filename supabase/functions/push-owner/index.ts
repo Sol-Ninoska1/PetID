@@ -78,9 +78,12 @@ async function buildNotification(table: Table, row: Record<string, any>, pet: Re
     };
   }
 
+  // Name and phone are optional: new reports only carry a message and maybe a phone.
+  const contact = [row.reporter_name, row.reporter_phone].filter(Boolean).join(' · ');
+  const message = row.message ? `"${String(row.message).slice(0, 80)}"` : '';
   return {
     title: `🚨 ¡Encontraron a ${pet.name}!`,
-    body: `${row.reporter_name} · ${row.reporter_phone}${row.message ? ` — "${String(row.message).slice(0, 80)}"` : ''}`,
+    body: [contact, message].filter(Boolean).join(' — ') || 'Alguien encontró a tu mascota. Toca para ver el aviso.',
     tag: `found-${row.id}`,
     url: activity,
     mapUrl: row.latitude != null ? mapsUrl(row.latitude, row.longitude) : undefined,

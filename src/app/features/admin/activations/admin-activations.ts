@@ -24,24 +24,24 @@ import { AdminTable } from '../ui/admin-table';
         @for (item of items(); track item.id) {
           <tr>
             <td class="font-bold tracking-wider"><a [routerLink]="['/admin/petids', item.id]" class="hover:text-brand-700 hover:underline">{{ item.code }}</a></td>
-            <td>{{ item.pet?.name ?? '—' }}</td>
-            <td>
+            <td class="font-semibold sm:font-normal">{{ item.pet?.name ?? '—' }}</td>
+            <td class="cell-full max-sm:order-last">
               <span class="block">{{ item.owner?.name ?? '—' }}</span>
               <span class="block text-xs text-muted">{{ item.owner?.email }}</span>
             </td>
-            <td class="whitespace-nowrap text-muted">{{ item.soldAt ? (item.soldAt | date: 'dd/MM/yy') : '—' }}</td>
-            <td class="whitespace-nowrap">
-              <span class="block">{{ item.activatedAt | date: 'dd/MM/yy HH:mm' }}</span>
-              <span class="block text-xs text-muted">{{ item.activatedAt | relativeTime }}</span>
+            <td class="whitespace-nowrap text-muted max-sm:hidden">{{ item.soldAt ? (item.soldAt | date: 'dd/MM/yy') : '—' }}</td>
+            <td class="whitespace-nowrap max-sm:basis-full" data-label="Activada">
+              <span class="sm:block">{{ item.activatedAt | date: 'dd/MM/yy HH:mm' }}</span>
+              <span class="block text-xs text-muted max-sm:hidden">{{ item.activatedAt | relativeTime }}</span>
             </td>
-            <td class="whitespace-nowrap">
+            <td class="whitespace-nowrap max-sm:basis-full" data-label="Plan vence">
               @if (item.expiresAt) {
                 @let days = daysLeft(item.expiresAt);
-                <span class="block" [class.font-semibold]="days <= renewalNoticeDays" [class.text-red-600]="days <= 0"
+                <span class="sm:block" [class.font-semibold]="days <= renewalNoticeDays" [class.text-red-600]="days <= 0"
                   [class.text-amber-700]="days > 0 && days <= renewalNoticeDays">
                   {{ item.expiresAt | date: 'dd/MM/yy' }}
                 </span>
-                <span class="block text-xs text-muted">{{ days <= 0 ? 'Vencido' : days === 1 ? 'Mañana' : 'En ' + days + ' días' }}</span>
+                <span class="text-xs text-muted sm:block">{{ days <= 0 ? 'Vencido' : days === 1 ? 'Mañana' : 'En ' + days + ' días' }}</span>
               } @else {
                 <span class="text-muted">—</span>
               }

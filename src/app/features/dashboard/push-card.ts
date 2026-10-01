@@ -17,39 +17,41 @@ import { Icon } from '../../shared/ui/icon';
         </button>
       </p>
     } @else {
-      <section class="card flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-        <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700">
-          <app-icon name="bell" class="size-6" />
-        </span>
-        <div class="min-w-0 flex-1">
-          <h2 class="font-bold">Recibe un aviso cuando escaneen su placa</h2>
-          @switch (push.availability) {
-            @case ('ios-install') {
-              <p class="mt-1 text-sm text-muted">
-                En iPhone, primero agrega PetID a tu pantalla de inicio (botón <strong>Compartir</strong> →
-                <strong>Agregar a inicio</strong>) y ábrela desde ahí.
-              </p>
-            }
-            @case ('dev') {
-              <p class="mt-1 text-sm text-muted">Las notificaciones funcionan en la versión publicada, no en modo desarrollo.</p>
-            }
-            @case ('unsupported') {
-              <p class="mt-1 text-sm text-muted">Este navegador no permite notificaciones. Prueba con Chrome, Edge, Firefox o Safari actualizado.</p>
-            }
-            @default {
-              @if (push.permission() === 'denied') {
-                <p class="mt-1 text-sm text-muted">Bloqueaste las notificaciones de PetID. Actívalas en la configuración del navegador y vuelve a intentarlo.</p>
-              } @else {
-                <p class="mt-1 text-sm text-muted">Te llega una notificación con la zona aproximada del escaneo, y el mapa exacto si la persona comparte su GPS.</p>
+      <section class="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+        <div class="flex min-w-0 flex-1 items-start gap-3">
+          <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
+            <app-icon name="bell" class="size-4" />
+          </span>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-sm font-bold leading-snug">Recibe un aviso cuando escaneen su placa</h2>
+            @switch (push.availability) {
+              @case ('ios-install') {
+                <p class="mt-0.5 text-xs text-muted">
+                  En iPhone, primero agrega PetID a tu pantalla de inicio (botón <strong>Compartir</strong> →
+                  <strong>Agregar a inicio</strong>) y ábrela desde ahí.
+                </p>
+              }
+              @case ('dev') {
+                <p class="mt-0.5 text-xs text-muted">Las notificaciones funcionan en la versión publicada, no en modo desarrollo.</p>
+              }
+              @case ('unsupported') {
+                <p class="mt-0.5 text-xs text-muted">Este navegador no permite notificaciones. Prueba con Chrome, Edge, Firefox o Safari actualizado.</p>
+              }
+              @default {
+                @if (push.permission() === 'denied') {
+                  <p class="mt-0.5 text-xs text-muted">Bloqueaste las notificaciones de PetID. Actívalas en la configuración del navegador y vuelve a intentarlo.</p>
+                } @else {
+                  <p class="mt-0.5 text-xs text-muted">Te llega una notificación con la zona aproximada del escaneo, y el mapa exacto si la persona comparte su GPS.</p>
+                }
               }
             }
-          }
-          @if (error()) {
-            <p class="field-error">{{ error() }}</p>
-          }
+            @if (error()) {
+              <p class="field-error">{{ error() }}</p>
+            }
+          </div>
         </div>
         @if (push.availability === 'available' && push.permission() !== 'denied') {
-          <button type="button" class="btn btn-primary shrink-0" [disabled]="busy()" (click)="enable()">
+          <button type="button" class="btn btn-primary btn-sm shrink-0" [disabled]="busy()" (click)="enable()">
             {{ busy() ? 'Activando…' : 'Activar avisos' }}
           </button>
         }

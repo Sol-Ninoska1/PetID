@@ -47,15 +47,15 @@ const STATUS: Record<SupportStatus, { label: string; css: string }> = {
       <tbody>
         @for (m of visible(); track m.id) {
           <tr class="align-top">
-            <td class="whitespace-nowrap text-muted">{{ m.createdAt | date: 'dd/MM/yy HH:mm' }}</td>
-            <td>
+            <td class="whitespace-nowrap text-muted max-sm:text-xs">{{ m.createdAt | date: 'dd/MM/yy HH:mm' }}</td>
+            <td class="cell-main">
               <span class="block font-semibold">{{ m.name }}</span>
               <a class="block text-xs text-brand-700 hover:underline" [href]="'mailto:' + m.email">{{ m.email }}</a>
               @if (m.phone) { <span class="block text-xs text-muted">{{ m.phone }}</span> }
               @if (m.hasAccount) { <span class="mt-1 inline-block rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-slate-600">Cliente</span> }
             </td>
-            <td class="whitespace-nowrap">{{ topic[m.topic] }}</td>
-            <td class="min-w-64 max-w-md">
+            <td class="whitespace-nowrap max-sm:text-xs">{{ topic[m.topic] }}</td>
+            <td class="cell-full min-w-64 max-w-md">
               <p class="whitespace-pre-line text-muted" [class.line-clamp-3]="expanded() !== m.id">{{ m.message }}</p>
               @if (m.message.length > 160) {
                 <button type="button" class="mt-1 text-xs font-semibold text-brand-700" (click)="expanded.set(expanded() === m.id ? null : m.id)">
@@ -63,9 +63,9 @@ const STATUS: Record<SupportStatus, { label: string; css: string }> = {
                 </button>
               }
             </td>
-            <td><span class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold" [class]="status[m.status].css">{{ status[m.status].label }}</span></td>
-            <td>
-              <div class="flex justify-end gap-2">
+            <td class="cell-corner"><span class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold" [class]="status[m.status].css">{{ status[m.status].label }}</span></td>
+            <td class="cell-full">
+              <div class="flex justify-end gap-2 max-sm:justify-start">
                 <a class="btn btn-secondary btn-sm" [href]="replyLink(m)"><app-icon name="mail" class="size-4" /> Responder</a>
                 <button type="button" class="btn btn-ghost btn-sm whitespace-nowrap" [disabled]="busy() === m.id" (click)="toggle(m)">
                   {{ m.status === 'nuevo' ? 'Marcar resuelto' : 'Reabrir' }}

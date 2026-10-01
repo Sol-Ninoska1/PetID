@@ -8,17 +8,45 @@
       }
       <a href="#precio" class="btn btn-ghost btn-sm hidden md:inline-flex">Precio</a>
       <a href="#resenas" class="btn btn-ghost btn-sm hidden lg:inline-flex">Reseñas</a>
-      <a href="#soporte" class="btn btn-ghost btn-sm hidden sm:inline-flex">Soporte</a>
+      <a href="#soporte" class="btn btn-ghost btn-sm hidden md:inline-flex">Soporte</a>
       @if (auth.isAuthenticated()) {
-        <a routerLink="/dashboard" class="btn btn-secondary btn-sm">Mis mascotas</a>
+        <a routerLink="/dashboard" class="btn btn-secondary btn-sm hidden md:inline-flex">Mis mascotas</a>
       } @else {
-        <a routerLink="/login" class="btn btn-ghost btn-sm">Ingresar</a>
+        <a routerLink="/login" class="btn btn-ghost btn-sm hidden md:inline-flex">Ingresar</a>
       }
       <a routerLink="/dashboard" [queryParams]="{ activar: 1 }" class="btn btn-primary btn-sm">
         <app-icon name="paw" class="size-4" /> Activar mi PetID
       </a>
+      <button type="button" class="grid size-10 place-items-center rounded-xl text-ink hover:bg-slate-100 md:hidden"
+        [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'" [attr.aria-expanded]="menuOpen()" (click)="menuOpen.set(!menuOpen())">
+        <app-icon [name]="menuOpen() ? 'x' : 'menu'" class="size-6" />
+      </button>
     </nav>
   </div>
+  @if (menuOpen()) {
+    <div class="absolute inset-x-0 top-full h-dvh bg-slate-900/30 md:hidden" (click)="menuOpen.set(false)"></div>
+    <nav class="absolute inset-x-0 top-full border-b border-slate-900/5 bg-white px-4 pb-4 pt-2 shadow-lg md:hidden" aria-label="Menú"
+      (click)="menuOpen.set(false)">
+      <a href="#como-funciona" class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">Cómo funciona</a>
+      @if (catalog().length) {
+        <a href="#productos" class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">Productos</a>
+      }
+      <a href="#precio" class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">Precio</a>
+      <a href="#resenas" class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">Reseñas</a>
+      <a href="#soporte" class="block rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100">Soporte</a>
+      <div class="mt-2 border-t border-slate-100 pt-2">
+        @if (auth.isAuthenticated()) {
+          <a routerLink="/dashboard" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-700 hover:bg-slate-100">
+            <app-icon name="paw" class="size-4" /> Mis mascotas
+          </a>
+        } @else {
+          <a routerLink="/login" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-700 hover:bg-slate-100">
+            <app-icon name="lock" class="size-4" /> Ingresar
+          </a>
+        }
+      </div>
+    </nav>
+  }
 </header>
 
 <main>

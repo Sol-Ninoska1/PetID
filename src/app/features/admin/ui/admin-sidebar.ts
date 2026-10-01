@@ -15,15 +15,15 @@ export const ADMIN_MENU: { label: string; path: string; icon: IconName; exact?: 
   { label: 'Configuración', path: '/admin/settings', icon: 'settings' },
 ];
 
-/** Vertical menu on desktop, horizontal scrollable chips on mobile. */
+/** Vertical admin menu: the desktop sidebar, and the panel behind the mobile hamburger. */
 @Component({
   selector: 'app-admin-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, Icon],
   template: `
-    <nav aria-label="Administración" class="-mx-4 flex gap-1 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0">
+    <nav aria-label="Administración" class="flex flex-col gap-1">
       @for (item of menu; track item.path) {
-        <a [routerLink]="item.path" routerLinkActive="bg-brand-600 !text-white shadow-sm" [routerLinkActiveOptions]="{ exact: !!item.exact }"
+        <a [routerLink]="item.path" routerLinkActive="!bg-brand-600 !text-white shadow-sm hover:!bg-brand-700" [routerLinkActiveOptions]="{ exact: !!item.exact }"
           class="flex shrink-0 items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-ink">
           <app-icon [name]="item.icon" class="size-4" />
           {{ item.label }}

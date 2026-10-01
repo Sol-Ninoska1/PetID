@@ -16,7 +16,7 @@ import { AdminTable } from '../ui/admin-table';
         <h1 class="page-title">Productos</h1>
         <p class="mt-1 text-muted">Catálogo de collares, placas y tags. Los activos se muestran en la página principal.</p>
       </div>
-      <a routerLink="/admin/products/new" class="btn btn-primary">
+      <a routerLink="/admin/products/new" class="btn btn-primary w-full sm:w-auto">
         <app-icon name="plus" class="size-5" /> Nuevo producto
       </a>
     </div>
@@ -33,7 +33,7 @@ import { AdminTable } from '../ui/admin-table';
       <tbody>
         @for (p of items(); track p.id) {
           <tr [class.opacity-60]="!p.isActive">
-            <td>
+            <td class="cell-main">
               <div class="flex items-center gap-3">
                 <span class="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand-50 text-brand-700">
                   @if (p.photoUrl) {
@@ -49,8 +49,8 @@ import { AdminTable } from '../ui/admin-table';
               </div>
             </td>
             <td class="whitespace-nowrap font-semibold">{{ formatClp(p.priceClp) }}</td>
-            <td class="max-w-56">
-              <p class="truncate text-sm">{{ variantSummary(p) }}</p>
+            <td class="max-w-56 max-sm:flex-1">
+              <p class="truncate text-sm max-sm:text-xs max-sm:text-muted">{{ variantSummary(p) }}</p>
             </td>
             <td>
               @let stock = totalStock(p);
@@ -59,13 +59,13 @@ import { AdminTable } from '../ui/admin-table';
                 {{ stock === 0 ? 'Agotado' : stock }}
               </span>
             </td>
-            <td>
+            <td data-label="Visible">
               <label class="inline-flex cursor-pointer items-center gap-2 text-sm">
                 <input type="checkbox" class="size-4 accent-brand-600" [checked]="p.isActive" [disabled]="busyId() === p.id" (change)="toggleActive(p)" />
                 {{ p.isActive ? 'Sí' : 'No' }}
               </label>
             </td>
-            <td class="text-right">
+            <td class="cell-corner text-right">
               <a [routerLink]="['/admin/products', p.id]" class="btn btn-ghost btn-sm" [attr.aria-label]="'Editar ' + p.name">
                 <app-icon name="edit" class="size-4" />
               </a>

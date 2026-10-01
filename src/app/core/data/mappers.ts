@@ -3,6 +3,7 @@ import {
   FoundReport,
   GeoPoint,
   LocationShare,
+  OwnerNotification,
   Pet,
   PetIdRecord,
   PetIdSummary,
@@ -179,3 +180,17 @@ export const toLocationShare = (r: Row): LocationShare => ({
   createdAt: r['created_at'],
   readAt: r['read_at'],
 });
+
+/** Row of list_notifications: the event's own row comes in `payload`. */
+export const toOwnerNotification = (r: Row): OwnerNotification => {
+  const petName: string = r['pet_name'];
+  const base = { id: `${r['kind']}:${r['payload']['id']}`, createdAt: r['created_at'], petName, unseen: !!r['unseen'] };
+  switch (r['kind']) {
+    case 'found_report':
+      return { ...base, kind: 'found_report', data: { ...toFoundReport(r['payload']), petName } };
+    case 'location_share':
+      return { ...base, kind: 'location_share', data: { ...toLocationShare(r['payload']), petName } };
+    default:
+      return { ...base, kind: 'scan', data: toScan(r['payload']) };
+  }
+};

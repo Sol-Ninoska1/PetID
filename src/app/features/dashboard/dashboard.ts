@@ -1,12 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
-import { ActivityRepository } from '../../core/data/activity.repository';
 import { PetsRepository } from '../../core/data/pets.repository';
-import { OwnerAlert, PetWithStats } from '../../core/models';
-import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
+import { PetWithStats } from '../../core/models';
 import { Icon } from '../../shared/ui/icon';
-import { mapsHref, telHref, whatsappHref } from '../../shared/utils/contact';
+import { QrScanner } from '../../shared/ui/qr-scanner';
 import { extractQrToken, publicPetIdUrl } from '../../shared/utils/qr-label';
 import { PetCard } from './pet-card';
 import { PushCard } from './push-card';
@@ -14,13 +12,12 @@ import { PushCard } from './push-card';
 @Component({
   selector: 'app-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Icon, RelativeTimePipe, PetCard, PushCard],
+  imports: [RouterLink, Icon, PetCard, PushCard, QrScanner],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly petsRepo = inject(PetsRepository);
-  private readonly activityRepo = inject(ActivityRepository);
   private readonly router = inject(Router);
 
   /** Query param set right after activating a PetID. */
@@ -28,17 +25,15 @@ export class Dashboard implements OnInit {
   /** Query param from the landing's "Activar mi PetID" button: opens the activation box. */
   readonly activar = input<string>();
 
-  protected readonly telHref = telHref;
-  protected readonly whatsappHref = whatsappHref;
-  protected readonly mapsHref = mapsHref;
   protected readonly publicPetIdUrl = publicPetIdUrl;
 
   protected readonly pets = signal<PetWithStats[]>([]);
-  protected readonly alerts = signal<OwnerAlert[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly busyPetId = signal<string | null>(null);
   protected readonly showActivate = signal(false);
+  protected readonly scanning = signal(false);
+  protected readonly showPaste = signal(false);
   protected readonly activateInput = signal('');
   protected readonly activateError = signal<string | null>(null);
 
@@ -48,14 +43,24 @@ export class Dashboard implements OnInit {
   async ngOnInit() {
     if (this.activar()) this.showActivate.set(true);
     try {
-      const [pets, alerts] = await Promise.all([this.petsRepo.listMine(), this.activityRepo.listUnreadAlerts()]);
-      this.pets.set(pets);
-      this.alerts.set(alerts);
+      this.pets.set(await this.petsRepo.listMine());
     } catch {
       this.error.set('No pudimos cargar tus mascotas. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async onScanned(token: string) {
+    this.scanning.set(false);
+    await this.router.navigate(['/activate', token]);
+  }
+
+  pasteLink() {
+    this.scanning.set(false);
+    this.showPaste.set(true);
+    this.showActivate.set(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async goToActivation(event: Event) {
@@ -74,11 +79,6 @@ export class Dashboard implements OnInit {
 
   async toggleActive(pet: PetWithStats) {
     await this.patchPet(pet, { isActive: !pet.isActive }, () => this.petsRepo.setActive(pet.id, !pet.isActive));
-  }
-
-  async dismissAlert(alert: OwnerAlert) {
-    this.alerts.update((list) => list.filter((a) => a !== alert));
-    await this.activityRepo.markRead(alert).catch(() => this.alerts.update((list) => [alert, ...list]));
   }
 
   /** Optimistic update: reverts the card if the request fails. */

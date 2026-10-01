@@ -54,10 +54,10 @@ const ACTIONS: Record<PetIdStatus, { label: string; icon: IconName }> = {
               <app-pet-id-status-badge [status]="item.status" />
             </div>
 
-            <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-              <div class="rounded-2xl bg-surface px-3 py-2">
+            <dl class="mt-5 grid grid-cols-2 gap-2 text-sm sm:gap-3">
+              <div class="col-span-2 rounded-2xl bg-surface px-3 py-2 sm:col-span-1">
                 <dt class="text-xs text-muted">Token QR</dt>
-                <dd class="font-mono">{{ item.qrToken }}</dd>
+                <dd class="break-all font-mono">{{ item.qrToken }}</dd>
               </div>
               <div class="rounded-2xl bg-surface px-3 py-2">
                 <dt class="text-xs text-muted">Creada</dt>
@@ -82,7 +82,7 @@ const ACTIONS: Record<PetIdStatus, { label: string; icon: IconName }> = {
                 </dd>
               </div>
               @if (item.notes) {
-                <div class="rounded-2xl bg-surface px-3 py-2 sm:col-span-2">
+                <div class="col-span-2 rounded-2xl bg-surface px-3 py-2">
                   <dt class="text-xs text-muted">Nota interna</dt>
                   <dd class="font-medium">{{ item.notes }}</dd>
                 </div>

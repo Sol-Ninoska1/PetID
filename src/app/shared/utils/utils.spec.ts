@@ -1,6 +1,6 @@
 import { authErrorMessage } from '../../core/auth/auth-errors';
 import { safeReturnUrl } from '../../core/auth/auth.service';
-import { toPublicPetIdState } from '../../core/data/mappers';
+import { toOwnerNotification, toPublicPetIdState } from '../../core/data/mappers';
 import { allowedPetIdTransitions, totalStock } from '../../core/models';
 import { RelativeTimePipe } from '../pipes/relative-time.pipe';
 import { PHONE_PATTERN, telHref, whatsappHref } from './contact';
@@ -93,6 +93,23 @@ describe('shared utils', () => {
     expect(toPublicPetIdState({ status: 'unactivated', code: 'PET-00007' })).toEqual({ status: 'unactivated', code: 'PET-00007' });
     expect(toPublicPetIdState({ status: 'blocked' })).toEqual({ status: 'blocked' });
     expect(toPublicPetIdState({ status: 'inactive' })).toEqual({ status: 'inactive' });
+  });
+
+  it('maps the notification history rows', () => {
+    const at = '2026-10-01T15:00:00Z';
+    const report = toOwnerNotification({
+      kind: 'found_report', created_at: at, pet_name: 'Hachi', unseen: true,
+      payload: { id: 'r1', pet_id: 'p1', reporter_name: 'Sol', reporter_phone: '+56912345678', latitude: -33.4, longitude: -70.6, created_at: at },
+    });
+    expect(report).toMatchObject({ id: 'found_report:r1', kind: 'found_report', petName: 'Hachi', unseen: true });
+    expect(report.kind === 'found_report' && report.data.location.point).toEqual({ lat: -33.4, lng: -70.6 });
+
+    const scan = toOwnerNotification({
+      kind: 'scan', created_at: at, pet_name: 'Hachi', unseen: false,
+      payload: { id: 's1', pet_id: 'p1', scanned_at: at, city: 'Providencia', region: 'RM' },
+    });
+    expect(scan).toMatchObject({ id: 'scan:s1', kind: 'scan', unseen: false });
+    expect(scan.kind === 'scan' && scan.data.place).toBe('Providencia, RM');
   });
 
   it('reads the IP location from /api/geo and ignores non-JSON responses', async () => {

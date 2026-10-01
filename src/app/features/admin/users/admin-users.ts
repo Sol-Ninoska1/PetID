@@ -18,16 +18,16 @@ import { AdminTable } from '../ui/admin-table';
       <tbody>
         @for (user of items(); track user.id) {
           <tr>
-            <td class="font-semibold">{{ user.name }}</td>
-            <td>{{ user.email }}</td>
-            <td class="whitespace-nowrap">{{ user.phone ?? '—' }}</td>
-            <td>
+            <td class="cell-main font-semibold">{{ user.name }}</td>
+            <td class="max-sm:basis-full max-sm:truncate max-sm:text-muted">{{ user.email }}</td>
+            <td class="whitespace-nowrap" [class]="user.phone ? '' : 'max-sm:hidden'">{{ user.phone ?? '—' }}</td>
+            <td class="cell-corner">
               <span class="rounded-full px-2.5 py-1 text-xs font-bold" [class]="user.role === 'admin' ? 'bg-ink text-white' : 'bg-slate-100 text-slate-700'">
                 {{ user.role === 'admin' ? 'Admin' : 'Cliente' }}
               </span>
             </td>
-            <td>{{ user.petCount }}</td>
-            <td class="whitespace-nowrap text-muted">{{ user.createdAt | date: 'dd/MM/yy' }}</td>
+            <td data-label="Mascotas">{{ user.petCount }}</td>
+            <td class="whitespace-nowrap text-muted" data-label="Alta">{{ user.createdAt | date: 'dd/MM/yy' }}</td>
           </tr>
         }
       </tbody>

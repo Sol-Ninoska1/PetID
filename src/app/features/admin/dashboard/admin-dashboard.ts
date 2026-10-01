@@ -15,7 +15,7 @@ import { Icon, IconName } from '../../../shared/ui/icon';
         <h1 class="page-title">Dashboard</h1>
         <p class="mt-1 text-muted">Resumen de PetIDs, activaciones y actividad.</p>
       </div>
-      <a routerLink="/admin/petids" [queryParams]="{ generate: 1 }" class="btn btn-primary">
+      <a routerLink="/admin/petids" [queryParams]="{ generate: 1 }" class="btn btn-primary w-full sm:w-auto">
         <app-icon name="plus" class="size-5" /> Generar nueva PetID
       </a>
     </div>
@@ -24,7 +24,17 @@ import { Icon, IconName } from '../../../shared/ui/icon';
       <p class="alert-error mt-6">{{ error() }}</p>
     }
 
-    <section class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="PetIDs por estado">
+    <!-- Mobile: the five statuses side by side in one card -->
+    <section class="card mt-6 grid grid-cols-5 divide-x divide-slate-100 sm:hidden" aria-label="PetIDs por estado">
+      @for (card of petIdCards(); track card.label) {
+        <a [routerLink]="'/admin/petids'" [queryParams]="{ status: card.status }" class="min-w-0 px-1 py-2.5 text-center">
+          <p class="text-lg font-bold leading-tight">{{ loading() ? '–' : card.value }}</p>
+          <p class="truncate text-[10px] text-muted">{{ card.label }}</p>
+        </a>
+      }
+    </section>
+
+    <section class="mt-6 hidden gap-3 sm:grid sm:grid-cols-5" aria-label="PetIDs por estado">
       @for (card of petIdCards(); track card.label) {
         <a [routerLink]="'/admin/petids'" [queryParams]="{ status: card.status }" class="card p-4 transition hover:ring-brand-200">
           <p class="text-xs font-semibold uppercase tracking-wide text-muted">{{ card.label }}</p>
@@ -33,7 +43,20 @@ import { Icon, IconName } from '../../../shared/ui/icon';
       }
     </section>
 
-    <section class="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Actividad">
+    <!-- Mobile: activity in one row, like the statuses above -->
+    <section class="card mt-3 grid grid-cols-4 divide-x divide-slate-100 sm:hidden" aria-label="Actividad">
+      @for (card of activityCards(); track card.label) {
+        <a [routerLink]="card.link" class="flex min-w-0 flex-col items-center px-1 py-2.5 text-center">
+          <span class="grid size-6 place-items-center rounded-lg" [class]="card.css">
+            <app-icon [name]="card.icon" class="size-3.5" />
+          </span>
+          <p class="mt-1 text-base font-bold leading-tight">{{ loading() ? '–' : card.value }}</p>
+          <p class="truncate text-[10px] text-muted">{{ card.short }}</p>
+        </a>
+      }
+    </section>
+
+    <section class="mt-3 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4" aria-label="Actividad">
       @for (card of activityCards(); track card.label) {
         <a [routerLink]="card.link" class="card flex items-center gap-3 p-4 transition hover:ring-brand-200">
           <span class="grid size-10 shrink-0 place-items-center rounded-xl" [class]="card.css">
@@ -98,11 +121,11 @@ export class AdminDashboard implements OnInit {
   protected readonly activityCards = computed(() => {
     const s = this.stats();
     return [
-      { label: 'Mascotas registradas', value: s?.pets ?? 0, icon: 'paw', link: '/admin/pets', css: 'bg-brand-50 text-brand-700' },
-      { label: 'Mascotas perdidas', value: s?.lostPets ?? 0, icon: 'alert', link: '/admin/pets', css: 'bg-red-50 text-red-600' },
-      { label: 'Reportes nuevos', value: s?.newReports ?? 0, icon: 'flag', link: '/admin/reports', css: 'bg-amber-50 text-amber-700' },
-      { label: 'Escaneos (7 días)', value: s?.scansLast7Days ?? 0, icon: 'activity', link: '/admin/petids', css: 'bg-sky-50 text-sky-700' },
-    ] satisfies { label: string; value: number; icon: IconName; link: string; css: string }[];
+      { label: 'Mascotas registradas', short: 'Mascotas', value: s?.pets ?? 0, icon: 'paw', link: '/admin/pets', css: 'bg-brand-50 text-brand-700' },
+      { label: 'Mascotas perdidas', short: 'Perdidas', value: s?.lostPets ?? 0, icon: 'alert', link: '/admin/pets', css: 'bg-red-50 text-red-600' },
+      { label: 'Reportes nuevos', short: 'Reportes', value: s?.newReports ?? 0, icon: 'flag', link: '/admin/reports', css: 'bg-amber-50 text-amber-700' },
+      { label: 'Escaneos (7 días)', short: 'Escaneos 7d', value: s?.scansLast7Days ?? 0, icon: 'activity', link: '/admin/petids', css: 'bg-sky-50 text-sky-700' },
+    ] satisfies { label: string; short: string; value: number; icon: IconName; link: string; css: string }[];
   });
 
   async ngOnInit() {

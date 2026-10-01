@@ -31,8 +31,8 @@ Deno.serve(async (req) => {
     subject = `🚨 ${pet.name} fue encontrado`;
     body = `
       <p>Hola ${escape(owner.name)},</p>
-      <p><strong>${escape(record.reporter_name)}</strong> encontró a <strong>${escape(pet.name)}</strong>.</p>
-      <p>📞 ${escape(record.reporter_phone)}${record.reporter_email ? ` · ✉️ ${escape(record.reporter_email)}` : ''}</p>
+      <p><strong>${escape(record.reporter_name || 'Alguien')}</strong> encontró a <strong>${escape(pet.name)}</strong>.</p>
+      ${record.reporter_phone ? `<p>📞 ${escape(record.reporter_phone)}${record.reporter_email ? ` · ✉️ ${escape(record.reporter_email)}` : ''}</p>` : ''}
       ${record.message ? `<p>"${escape(record.message)}"</p>` : ''}
       ${record.location_text ? `<p>📍 ${escape(record.location_text)}</p>` : ''}
       ${record.latitude != null ? `<p><a href="${mapsLink(record.latitude, record.longitude)}">Ver ubicación en el mapa</a></p>` : ''}`;

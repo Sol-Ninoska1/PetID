@@ -26,7 +26,7 @@ import { GeneratePetIdsForm } from './generate-pet-ids-form';
         <h1 class="page-title">PetIDs</h1>
         <p class="mt-1 text-muted">Identificadores físicos: se generan, se imprimen, se venden y el cliente los activa.</p>
       </div>
-      <button type="button" class="btn btn-primary" (click)="showForm.set(!showForm())">
+      <button type="button" class="btn btn-primary w-full sm:w-auto" (click)="showForm.set(!showForm())">
         <app-icon [name]="showForm() ? 'x' : 'plus'" class="size-5" /> {{ showForm() ? 'Cerrar' : 'Generar nueva PetID' }}
       </button>
     </div>
@@ -114,8 +114,8 @@ import { GeneratePetIdsForm } from './generate-pet-ids-form';
               <a [routerLink]="['/admin/petids', item.id]" class="hover:text-brand-700 hover:underline">{{ item.code }}</a>
             </td>
             <td><app-pet-id-status-badge [status]="item.status" /></td>
-            <td>{{ item.pet?.name ?? '—' }}</td>
-            <td>
+            <td class="max-sm:basis-full" [class]="item.pet ? '' : 'max-sm:hidden'" data-label="Mascota">{{ item.pet?.name ?? '—' }}</td>
+            <td class="cell-full max-sm:order-last" [class]="item.owner ? '' : 'max-sm:hidden'">
               @if (item.owner; as owner) {
                 <span class="block">{{ owner.name }}</span>
                 <span class="block text-xs text-muted">{{ owner.email }}</span>
@@ -123,9 +123,9 @@ import { GeneratePetIdsForm } from './generate-pet-ids-form';
                 —
               }
             </td>
-            <td class="whitespace-nowrap text-muted">{{ item.createdAt | date: 'dd/MM/yy' }}</td>
-            <td class="whitespace-nowrap text-muted">{{ item.activatedAt ? (item.activatedAt | date: 'dd/MM/yy') : '—' }}</td>
-            <td class="text-right">
+            <td class="whitespace-nowrap text-muted" data-label="Creada">{{ item.createdAt | date: 'dd/MM/yy' }}</td>
+            <td class="whitespace-nowrap text-muted" [class]="item.activatedAt ? '' : 'max-sm:hidden'" data-label="Activada">{{ item.activatedAt ? (item.activatedAt | date: 'dd/MM/yy') : '—' }}</td>
+            <td class="text-right max-sm:hidden">
               <a [routerLink]="['/admin/petids', item.id]" class="btn btn-ghost btn-sm">Ver QR</a>
             </td>
           </tr>

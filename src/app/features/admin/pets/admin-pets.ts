@@ -22,7 +22,7 @@ import { AdminTable } from '../ui/admin-table';
       <tbody>
         @for (pet of items(); track pet.id) {
           <tr>
-            <td>
+            <td class="cell-main">
               <div class="flex items-center gap-3">
                 <span class="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-50">
                   @if (pet.photoUrl) {
@@ -39,12 +39,12 @@ import { AdminTable } from '../ui/admin-table';
             </td>
             <td><app-pet-status-badge [isLost]="pet.isLost" [isActive]="pet.isActive" /></td>
             <td class="font-semibold tracking-wider">{{ pet.petIdCode ?? '—' }}</td>
-            <td>
+            <td class="cell-full max-sm:order-last">
               <span class="block">{{ pet.ownerName ?? '—' }}</span>
               <span class="block text-xs text-muted">{{ pet.ownerEmail }}</span>
             </td>
-            <td class="whitespace-nowrap text-muted">{{ pet.createdAt | date: 'dd/MM/yy' }}</td>
-            <td class="text-right">
+            <td class="whitespace-nowrap text-muted" data-label="Registrada">{{ pet.createdAt | date: 'dd/MM/yy' }}</td>
+            <td class="cell-corner text-right">
               @if (pet.petIdQrToken) {
                 <a [routerLink]="['/p', pet.petIdQrToken]" target="_blank" class="btn btn-ghost btn-sm" [attr.aria-label]="'Ver perfil de ' + pet.name">
                   <app-icon name="external-link" class="size-4" />

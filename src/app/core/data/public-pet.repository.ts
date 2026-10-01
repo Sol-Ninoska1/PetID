@@ -40,11 +40,11 @@ export class PublicPetRepository {
   async submitFoundReport(token: string, input: FoundReportInput): Promise<void> {
     const { error } = await this.db.rpc('submit_found_report', {
       p_token: token,
-      p_reporter_name: input.reporterName,
+      p_reporter_name: null,
       p_reporter_phone: input.reporterPhone,
-      p_reporter_email: input.reporterEmail,
+      p_reporter_email: null,
       p_message: input.message,
-      p_location_text: input.locationText,
+      p_location_text: null,
       p_latitude: input.point?.lat ?? null,
       p_longitude: input.point?.lng ?? null,
     });

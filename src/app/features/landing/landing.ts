@@ -23,6 +23,7 @@ export class Landing implements OnInit {
   protected readonly demoUrl = publicPetIdUrl('demo-max');
   protected readonly catalog = signal<CatalogProduct[]>([]);
   protected readonly tutorialPlaying = signal(false);
+  protected readonly menuOpen = signal(false);
   protected readonly supportPreset = signal<SupportPreset | null>(null);
 
   /** Query param from the owner's "Renovar" button: PetID code to renew. */

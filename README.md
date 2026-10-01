@@ -34,6 +34,7 @@ Admin genera PetID genérica (PET-00001 + qr_token aleatorio)
 1. **Zona aproximada en cada escaneo.** La página pública consulta `/api/geo` (Cloudflare Pages Function en `functions/api/geo.js`), que devuelve la ciudad y región según la conexión del visitante. No se guarda su IP. Es una estimación que puede fallar por varios kilómetros. En desarrollo local no hay `/api/geo` y el escaneo se guarda sin zona.
 2. **GPS automático si la mascota está perdida.** Al abrir el perfil de una mascota marcada como perdida, el navegador pregunta si comparte la ubicación. Si acepta, se envía sola. Si no es una mascota perdida, está el botón "Enviar mi ubicación". Antes de enviar, la app espera hasta 8 segundos por una señal GPS con menos de 50 m de margen y manda la más precisa que consiguió. El navegador **siempre** pide permiso: ninguna web puede leer el GPS sin él.
 3. **Notificación push al dueño.** Cuando escanean la placa, comparten el GPS o reportan que la encontraron, un trigger llama a la Edge Function `push-owner`, que envía una notificación a los dispositivos del dueño. Después de avisar un escaneo, los siguientes escaneos de esa placa no avisan durante 2 minutos. El dueño las activa desde su dashboard ("Activar avisos"). En iPhone, primero hay que agregar PetID a la pantalla de inicio.
+4. **Historial de avisos.** La campana del menú del dueño abre `/avisos`: reportes de "la encontré", ubicaciones compartidas y escaneos que avisaron, del más nuevo al más antiguo. El contador muestra lo que llegó desde la última visita. "Limpiar historial" solo oculta lo anterior de esa vista. No borra nada: la actividad de cada mascota y el admin siguen viéndolo.
 
 ### Configurar las notificaciones push
 
@@ -63,6 +64,9 @@ Las claves VAPID y el secreto están en `supabase/functions/.env` y los secretos
    8. `supabase/migrations/20260928000100_support_reviews.sql`
    9. `supabase/migrations/20260929000000_yearly_plan.sql`
    10. `supabase/migrations/20260929000100_scan_notified_at.sql`
+   11. `supabase/migrations/20261001000000_owner_notifications.sql`
+   12. `supabase/migrations/20261001000100_found_report_optional.sql`
+   13. `supabase/migrations/20261001000200_notifications_realtime.sql`
 
    Con Supabase CLI también sirve `supabase link` y luego `supabase db push`.
 3. **Configurar URLs de Auth.** En *Authentication → URL Configuration*, pon `http://localhost:4200` como *Site URL* y agrega `http://localhost:4200/**` en *Redirect URLs*.
@@ -125,10 +129,11 @@ src/app/
     auth/        login, register, forgot-password, reset-password (con returnUrl)
     activation/  /activate/:qrToken
     public-pet/  /p/:qrToken, banner de perdida, contacto, "Encontré esta mascota"
-    dashboard/   Mascotas del dueño, PetID, avisos
+    dashboard/   Mascotas del dueño y PetID
+    notifications/ /avisos: historial de avisos del dueño
     pets/        pet-form (activación/edición), pet-qr, pet-activity
     admin/       layout, sidebar, dashboard, pet-ids, activations, pets, users, reports, support, reviews
-  layout/        Layout del área del dueño
+  layout/        Layout del área del dueño (campana con contador de avisos)
   shared/        UI (icon, qr-card, badges), pipes, utilidades (qr-label: SVG/PNG/PDF/impresión)
 supabase/
   migrations/    Esquema, RLS, funciones y bucket de fotos

@@ -25,15 +25,15 @@ const STATUS: Record<FoundReportStatus, { label: string; css: string }> = {
       <tbody>
         @for (r of items(); track r.id) {
           <tr>
-            <td class="whitespace-nowrap text-muted">{{ r.createdAt | date: 'dd/MM/yy HH:mm' }}</td>
-            <td class="font-semibold">{{ r.petName ?? '—' }}</td>
-            <td class="tracking-wider">{{ r.petIdCode ?? '—' }}</td>
-            <td>
-              <span class="block">{{ r.reporterName }}</span>
-              <span class="block text-xs text-muted">{{ r.reporterPhone }}</span>
+            <td class="whitespace-nowrap text-muted max-sm:text-xs">{{ r.createdAt | date: 'dd/MM/yy HH:mm' }}</td>
+            <td class="cell-main font-semibold">{{ r.petName ?? '—' }}</td>
+            <td class="tracking-wider max-sm:text-xs">{{ r.petIdCode ?? '—' }}</td>
+            <td class="cell-full">
+              <span class="block">{{ r.reporterName || 'Anónimo' }}</span>
+              <span class="block text-xs text-muted">{{ r.reporterPhone || 'Sin teléfono' }}</span>
             </td>
-            <td class="max-w-xs"><p class="line-clamp-2 text-muted">{{ r.message ?? '—' }}</p></td>
-            <td><span class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold" [class]="status[r.status].css">{{ status[r.status].label }}</span></td>
+            <td class="cell-full max-w-xs"><p class="line-clamp-2 text-muted">{{ r.message ?? '—' }}</p></td>
+            <td class="cell-corner"><span class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold" [class]="status[r.status].css">{{ status[r.status].label }}</span></td>
           </tr>
         }
       </tbody>

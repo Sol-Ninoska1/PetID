@@ -33,19 +33,19 @@ import { AdminTable } from '../ui/admin-table';
       <tbody>
         @for (r of items(); track r.id) {
           <tr class="align-top" [class.opacity-60]="r.isHidden">
-            <td class="whitespace-nowrap text-muted">{{ r.createdAt | date: 'dd/MM/yy' }}</td>
-            <td>
+            <td class="whitespace-nowrap text-muted max-sm:text-xs">{{ r.createdAt | date: 'dd/MM/yy' }}</td>
+            <td class="cell-main">
               <span class="block font-semibold">{{ r.authorName }}</span>
               @if (r.authorEmail) { <a class="block text-xs text-brand-700 hover:underline" [href]="'mailto:' + r.authorEmail">{{ r.authorEmail }}</a> }
             </td>
             <td><app-star-rating [value]="r.rating" starClass="size-4" /></td>
-            <td class="min-w-64 max-w-md"><p class="whitespace-pre-line text-muted">{{ r.comment || '—' }}</p></td>
-            <td>
+            <td class="cell-full min-w-64 max-w-md"><p class="whitespace-pre-line text-muted">{{ r.comment || '—' }}</p></td>
+            <td class="cell-corner">
               <span class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold" [class]="r.isHidden ? 'bg-slate-100 text-slate-600' : 'bg-brand-100 text-brand-800'">
                 {{ r.isHidden ? 'Oculta' : 'Pública' }}
               </span>
             </td>
-            <td class="text-right">
+            <td class="cell-end text-right">
               <button type="button" class="btn btn-ghost btn-sm whitespace-nowrap" [disabled]="busy() === r.id" (click)="toggle(r)">
                 {{ r.isHidden ? 'Mostrar' : 'Ocultar' }}
               </button>

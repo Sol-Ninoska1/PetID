@@ -26,8 +26,9 @@ export interface FoundReport {
   petId: string;
   petName?: string;
   status: FoundReportStatus;
-  reporterName: string;
-  reporterPhone: string;
+  /** Older reports asked for a name; new ones only an optional phone. */
+  reporterName: string | null;
+  reporterPhone: string | null;
   reporterEmail: string | null;
   message: string | null;
   location: { text: string | null; point: GeoPoint | null };
@@ -35,13 +36,10 @@ export interface FoundReport {
   readAt: string | null;
 }
 
-/** Sent by the person who found the pet (public page). */
+/** Sent by the person who found the pet (public page). The GPS is attached automatically when allowed. */
 export interface FoundReportInput {
-  reporterName: string;
-  reporterPhone: string;
-  reporterEmail: string | null;
+  reporterPhone: string | null;
   message: string | null;
-  locationText: string | null;
   point: GeoPoint | null;
 }
 
@@ -55,7 +53,9 @@ export interface LocationShare {
   readAt: string | null;
 }
 
-/** Unread item shown on the owner's dashboard. */
-export type OwnerAlert =
-  | { kind: 'found_report'; createdAt: string; data: FoundReport }
-  | { kind: 'location_share'; createdAt: string; data: LocationShare };
+/** One entry of the owner's notification history: the same events that send a push. */
+export type OwnerNotification = { id: string; createdAt: string; petName: string; unseen: boolean } & (
+  | { kind: 'found_report'; data: FoundReport }
+  | { kind: 'location_share'; data: LocationShare }
+  | { kind: 'scan'; data: Scan }
+);

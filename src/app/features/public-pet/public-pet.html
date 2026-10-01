@@ -154,7 +154,8 @@
                     </p>
                   }
                   <button type="button"
-                    class="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-50 px-4 py-3.5 font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100 active:scale-[0.99] disabled:opacity-70"
+                    class="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 font-semibold ring-2 transition active:scale-[0.99] disabled:opacity-80"
+                    [class]="locationState() === 'sent' ? 'bg-brand-50 text-brand-800 ring-brand-300' : 'bg-amber-50 text-amber-900 ring-amber-400 hover:bg-amber-100'"
                     [disabled]="locationState() === 'sending' || locationState() === 'sent'" (click)="sendLocation()">
                     <app-icon [name]="locationState() === 'sent' ? 'check' : 'map-pin'" class="size-5" />
                     @switch (locationState()) {
@@ -225,8 +226,7 @@
               }
 
               <footer class="mt-8 text-center text-sm text-muted">
-                <p>Los datos personales del dueño están protegidos.</p>
-                <p class="mt-1">Identificación por <a routerLink="/" class="font-semibold text-brand-700">PetID</a></p>
+                <p>Para más info sobre PetID, click <a routerLink="/" class="font-semibold text-brand-700 underline underline-offset-2">aquí</a></p>
               </footer>
               </div>
             </main>

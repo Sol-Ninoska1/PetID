@@ -140,6 +140,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
+        path: 'avisos',
+        title: 'Avisos — PetID',
+        loadComponent: () => import('./features/notifications/notifications').then((m) => m.Notifications),
+      },
+      {
         path: 'pets/:id/edit',
         title: 'Editar mascota — PetID',
         loadComponent: () => import('./features/pets/pet-form/pet-form').then((m) => m.PetForm),
